@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WeebLib.Interfaces
 {
-    internal abstract class ISearcher
+    public abstract class ISearcher
     {
         /// <summary>
         /// Searches for a item
@@ -17,7 +17,7 @@ namespace WeebLib.Interfaces
         /// <param name="title"></param>
         /// <param name="source"></param>
         /// <returns>True if the object was found</returns>
-        internal abstract bool Search(int start, string title, string source = "");
+        public abstract bool Search(int start, string title, string source = "");
 
         protected HtmlDocument Request(ref string url)
         {

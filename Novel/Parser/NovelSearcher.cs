@@ -10,17 +10,17 @@ using WeebLib.Interfaces;
 
 namespace WeebLib.Novel.Parser
 {
-    internal class NovelSearch : ISearcher
+    public class NovelSearcher : ISearcher
     {
         /// <summary>
         /// The website links fetched
         /// </summary>
-        public List<SearchType> results = new List<SearchType>();
+        protected List<SearchType> results = new List<SearchType>();
         /// <summary>
         /// number of results fetched
         /// </summary>
         int numberOfResults;
-        internal override bool Search(int start, string title, string source = "")
+        public override bool Search(int start, string title, string source = "")
         {
             if (source == "freewebnovel")
             {
@@ -87,7 +87,7 @@ namespace WeebLib.Novel.Parser
                 {
                     numberOfResults = Int32.Parse(html.DocumentNode.SelectSingleNode("//em[@class='num']").InnerText);
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException)
                 {
                     Logger.writeToLog("LOG TEST FOR NULL REF");
                 }
@@ -224,6 +224,12 @@ namespace WeebLib.Novel.Parser
             return true;
         }
 
+        public List<SearchType> getResults()
+        {
+            if (results.Count > 0) return results;
+            //TODO: Make this exp better
+            else throw new Exception();
+        }
 
         /// <summary>
         /// Get all novel chapters
@@ -231,7 +237,7 @@ namespace WeebLib.Novel.Parser
         /// <param name="novel"></param>
         /// <param name="first"></param>
         /// <returns></returns>
-        public List<NovelData> GetNovelChapters(ref NovelData novel, ref int first)
+        internal List<NovelData> GetNovelChapters(ref NovelData novel, ref int first)
         {
             List<NovelData> novels = new List<NovelData>();
             for (int i = first; i <= novel.totalChapters; ++i)

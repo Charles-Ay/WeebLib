@@ -13,7 +13,12 @@ namespace WeebLib.Novel
             FreeWebNovel, NovelTrench
         }
 
-        public static Dictionary<string, string> htmlSupportedWebsites = new Dictionary<string, string>()
+        public static string sourceToString(NovelSources sources)
+        {
+            return htmlSupportedWebsites[sources.ToString()];
+        }
+        
+        internal static Dictionary<string, string> htmlSupportedWebsites = new Dictionary<string, string>()
         {
             {"freewebnovel", "FreeWebNovel"}, {"noveltrench", "NovelTrench"}
         };
