@@ -41,9 +41,9 @@ namespace WeebLib.Novel.Parser
                     WorkDir = dir;
                 }
             }
-            if(WorkDir == "")
+            if(string.IsNullOrEmpty(WorkDir))
             {
-                string newdir = Path.Combine(dir, "Books");
+                string newdir = Path.Combine(dir, "Novels");
                 Directory.CreateDirectory(newdir);
                 WorkDir = dir;
             }

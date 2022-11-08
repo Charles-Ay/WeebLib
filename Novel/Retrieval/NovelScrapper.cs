@@ -36,7 +36,7 @@ namespace WeebLib.Novel.Retrieval
                 }
                 if (returnedValue == false)
                 {
-                    //TODO: MAKE THIS A MORE SPECIFIC ERROR(CUSTOMER EXCEPTION???)
+                    //TODO: MAKE THIS A MORE SPECIFIC ERROR(CUSTOM EXCEPTION???)
                     throw new InvalidOperationException();
                 }
 

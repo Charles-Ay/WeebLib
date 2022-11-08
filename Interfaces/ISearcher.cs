@@ -22,6 +22,7 @@ namespace WeebLib.Interfaces
         protected HtmlDocument Request(ref string url)
         {
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
 
             HtmlAgilityPack.HtmlDocument html = new HtmlDocument();
             html.OptionFixNestedTags = true;

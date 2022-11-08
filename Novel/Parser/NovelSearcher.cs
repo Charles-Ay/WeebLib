@@ -51,6 +51,8 @@ namespace WeebLib.Novel.Parser
 
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
             httpRequest.Method = "POST";
+            //mimck chrome
+            httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
 
             httpRequest.ContentType = "application/x-www-form-urlencoded";
 
