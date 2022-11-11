@@ -18,10 +18,9 @@ namespace WeebLib.Novel.Parser
 
         protected override int Fetch(NovelData data, int start)
         {
-            NovelScrapper scrapper = new NovelScrapper();
-            NovelSearcher searcher = new NovelSearcher();
-            List<NovelData> novels = searcher.GetNovelChapters(ref data, ref start);
-            return scrapper.Scrape(novels, base.WorkDir);
+            if (data.source == NovelUtil.sourceToString(NovelUtil.NovelSources.FullNovel))
+                return new NovelScrapper().Scrape(new NovelSearcher().QueryFullNovelAndGetChapters(ref data, start), WorkDir);
+            else return new NovelScrapper().Scrape(new NovelSearcher().GetNovelChapters(ref data, start), WorkDir);
         }
         
         public int Fetch(SearchType searchResults, int first, int last)

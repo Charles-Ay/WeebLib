@@ -26,7 +26,9 @@ namespace WeebLib.Interfaces
 
         protected HtmlAgilityPack.HtmlDocument GetSite(string url)
         {
-            var httpRequest = (HttpWebRequest)WebRequest.Create(url); 
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
+            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+#pragma warning restore SYSLIB0014 // Type or member is obsolete
             httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
 
             HtmlAgilityPack.HtmlDocument html = new HtmlDocument();

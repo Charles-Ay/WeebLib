@@ -10,17 +10,41 @@ namespace WeebLib.Novel
     {
         public enum NovelSources
         {
-            FreeWebNovel, NovelTrench
+            FreeWebNovel, FullNovel, NovelTrench
         }
 
         public static string sourceToString(NovelSources sources)
         {
             return htmlSupportedWebsites[sources.ToString()];
         }
-        
-        internal static Dictionary<string, string> htmlSupportedWebsites = new Dictionary<string, string>()
+
+        public static string sourceToStringUpper(NovelSources sources)
         {
-            {"freewebnovel", "FreeWebNovel"}, {"noveltrench", "NovelTrench"}
+            foreach (var key in htmlSupportedWebsites.Keys)
+            {
+                if (key == sources.ToString())
+                    return htmlSupportedWebsites[key];
+            }
+            //TODO: FIX THIS
+            throw new Exception();
+        }
+
+        public static string RemoveSpecialCharacters(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in str)
+            {
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '.' || c == '_' || c== ' ')
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
+        private static Dictionary<string, string> htmlSupportedWebsites = new Dictionary<string, string>()
+        {
+            {"FreeWebNovel", "freewebnovel"}, {"FullNovel", "fullnovel"}, {"NovelTrench", "noveltrench"}
         };
     }
 }

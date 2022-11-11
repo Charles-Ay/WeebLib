@@ -32,7 +32,9 @@ namespace WeebLib
         {
             var lineNumber = 0;
             const string lineSearch = ":line ";
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var index = ex.StackTrace.LastIndexOf(lineSearch);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (index != -1)
             {
                 var lineNumberText = ex.StackTrace.Substring(index + lineSearch.Length);

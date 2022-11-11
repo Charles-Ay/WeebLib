@@ -22,22 +22,22 @@ namespace WeebLib.Novel.Parser
         int numberOfResults;
         public override bool Search(int start, string title, string source = "")
         {
-            if (source == "freewebnovel")
+            switch (source)
             {
-                return SearchFreeWebNovel(ref start, ref title);
-            }
-            else if (source == "noveltrench")
-            {
-                return SearchNovelTrench(ref start, ref title);
-            }
-            else
-            {
-                bool result = SearchFreeWebNovel(ref start, ref title);
-                if (result == false) SearchNovelTrench(ref start, ref title);
-                return result;
+                case "freewebnovel":
+                    return SearchFreeWebNovel(start, title);
+                case "fullnovel":
+                    return SearchFullNovel(start, title);
+                case "noveltrench":
+                    return SearchNovelTrench(start, title);
+                case "":
+                    return SearchFreeWebNovel(start, title) ||
+                        SearchNovelTrench(start, title) ||
+                        SearchFullNovel(start, title);
+                default:
+                    return false;
             }
         }
-
 
         /// <summary>
         /// Searches for a novel on FreeWebNovel
@@ -45,11 +45,13 @@ namespace WeebLib.Novel.Parser
         /// <param name="startChapter"></param>
         /// <param name="novelname"></param>
         /// <returns></returns>
-        private bool SearchFreeWebNovel(ref int startChapter, ref string novelname)
+        private bool SearchFreeWebNovel(int startChapter, string novelname)
         {
             var url = "https://freewebnovel.com/search/";
 
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+#pragma warning restore SYSLIB0014 // Type or member is obsolete
             httpRequest.Method = "POST";
             //mimck chrome
             httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
@@ -115,8 +117,7 @@ namespace WeebLib.Novel.Parser
                                 //throw some error or return false
                             }
                         }
-                        string output;
-                        NovelUtil.htmlSupportedWebsites.TryGetValue("freewebnovel", out output);
+                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.FreeWebNovel);
                         sources.Add(output);
                     }
                 }
@@ -137,6 +138,103 @@ namespace WeebLib.Novel.Parser
             return true;
         }
 
+        private bool SearchFullNovel(int startChapter, string novelname)
+        {
+            string srchqry = novelname.Replace(" ", "+");
+            string url = $"https://full-novel.com/search?keyword={srchqry}";
+
+            var html = Request(url);
+            if (html.DocumentNode != null)
+            {
+                List<string> name = new List<string>();
+                List<string> link = new List<string>();
+                List<string> sources = new List<string>();
+
+                //string tmpString = html.DocumentNode.SelectSingleNode("//h1[@class='search_title']").InnerText;
+                //tmpString = Regex.Match(tmpString, @"\d+").Value;
+                //numberOfResults = Int32.Parse(tmpString);
+                string nextPage = "";
+                if (html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a") != null)
+                {
+                    var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
+                    nextPage = nextPageNode.GetAttributeValue("href", string.Empty);
+                }
+                else
+                {
+                    nextPage = "WILL BE DEAD";
+                }
+               
+               
+                while (nextPage != "DEAD")
+                {
+                    foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='novel-title']"))
+                    {
+                        name.Add(node.InnerText);
+                        var newNodes = node.SelectNodes("a");
+                        foreach (var innerNode in newNodes)
+                        {
+                            string tmp = innerNode.GetAttributeValue("href", string.Empty);
+                            if (tmp != string.Empty)
+                            {
+                                tmp = tmp.Replace("/nb/", "/ajax/chapter-archive?novelId=");
+                                link.Add(tmp);
+                            }
+                            else
+                            {
+                                //throw some error or return false
+                            }
+                        }
+                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.FullNovel);
+                        sources.Add(output);
+                        ++numberOfResults;
+                    }
+
+                    HtmlNode tmpNode = null;
+                    
+                    try
+                    {
+                        tmpNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']");
+                    }
+                    catch(Exception)
+                    {
+                        nextPage = "DEAD";
+                    }
+                    
+                    if (nextPage == "WILL BE DEAD")
+                    {
+                        nextPage = "DEAD";
+                    }
+                    else if (tmpNode == null)
+                    {
+                        nextPage = "DEAD";
+                    }
+                    else
+                    {
+                        nextPage = tmpNode.SelectSingleNode("a").GetAttributeValue("href", string.Empty);
+                        nextPage = nextPage.Replace("&#x3D;", "=");
+                        nextPage = nextPage.Replace("&amp;", "&");
+                        html = Request(nextPage);
+                    }
+
+                    if (name.Count != numberOfResults || link.Count != numberOfResults || sources.Count != numberOfResults)
+                    {
+                        //throw error
+                        throw new InvalidOperationException();
+                    }
+                    for (int i = 0; i < numberOfResults; ++i)
+                    {
+                        results.Add(new SearchType(name[i], link[i], sources[i]));
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
+
+
         /// <summary>
         /// Searches for a novel on NovelTrench
         /// </summary>
@@ -144,12 +242,12 @@ namespace WeebLib.Novel.Parser
         /// <param name="novelname"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private bool SearchNovelTrench(ref int startChapter, ref string novelname)
+        private bool SearchNovelTrench(int startChapter, string novelname)
         {
             string srchqry = novelname.Replace(" ", "+");
             var url = $"https://noveltrench.com/?s={srchqry}&post_type=wp-manga&op=&author=&artist=&release=&adult=";
 
-            var html = Request(ref url);
+            var html = Request(url);
 
             if (html.DocumentNode != null)
             {
@@ -172,7 +270,6 @@ namespace WeebLib.Novel.Parser
                 {
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='h4']"))
                     {
-                        //Console.WriteLine(node.InnerText);
                         name.Add(node.InnerText);
                         var newNodes = node.SelectNodes("a");
                         foreach (var innerNode in newNodes)
@@ -188,8 +285,7 @@ namespace WeebLib.Novel.Parser
                                 //throw some error or return false
                             }
                         }
-                        string output;
-                        NovelUtil.htmlSupportedWebsites.TryGetValue("noveltrench", out output);
+                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.NovelTrench);
                         sources.Add(output);
                     }
                     var tmpNode = html.DocumentNode.SelectSingleNode("//div[@class='nav-previous float-left']");
@@ -203,7 +299,7 @@ namespace WeebLib.Novel.Parser
                         int index = nextPage.IndexOf("wp-manga") + "wp-manga".Length;
                         if (index >= 0) nextPage = nextPage.Substring(0, index);
                         nextPage = nextPage.Replace("&#038;", "&");
-                        html = Request(ref nextPage);
+                        html = Request(nextPage);
                         tmpNode = tmpNode.SelectSingleNode("a");
                     }
                     else nextPage = "DEAD";
@@ -233,13 +329,47 @@ namespace WeebLib.Novel.Parser
             else throw new Exception();
         }
 
+        internal List<NovelData> QueryFullNovelAndGetChapters(ref NovelData novel, int first)
+        {
+            List<NovelData> novels = new List<NovelData>();
+
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
+            var httpRequest = (HttpWebRequest)WebRequest.Create(novel.initalLink);
+#pragma warning restore SYSLIB0014 // Type or member is obsolete
+            httpRequest.Method = "GET";
+            //mimck chrome
+            httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            string results = string.Empty;
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                results = streamReader.ReadToEnd();
+            }
+            var html = new HtmlDocument();
+            html.LoadHtml(results);
+
+
+            foreach (HtmlNode node in html.DocumentNode.SelectNodes("//span[@class='nchr-text']"))
+            {
+                var parent = node.ParentNode;
+                var link = parent.GetAttributeValue("href", string.Empty);
+                int num = int.Parse(Regex.Match(node.InnerHtml, @"\d+").Value);
+                if(num >= first && num <= novel.totalChapters)
+                {
+                    novels.Add(new NovelData(novel.name, num, link, novel.source));
+                }
+            }
+            return novels;
+        }
+
         /// <summary>
         /// Get all novel chapters
         /// </summary>
         /// <param name="novel"></param>
         /// <param name="first"></param>
         /// <returns></returns>
-        internal List<NovelData> GetNovelChapters(ref NovelData novel, ref int first)
+        internal List<NovelData> GetNovelChapters(ref NovelData novel, int first)
         {
             List<NovelData> novels = new List<NovelData>();
             for (int i = first; i <= novel.totalChapters; ++i)

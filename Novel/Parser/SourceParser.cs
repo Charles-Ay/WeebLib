@@ -17,8 +17,10 @@ namespace WeebLib.Novel.Parser
             {
                 case NovelUtil.NovelSources.FreeWebNovel:
                     return FreeWebNovelParse(html, out novelText);
+                case NovelUtil.NovelSources.FullNovel:
+                    return FullNovelParse(html, out novelText);
                 case NovelUtil.NovelSources.NovelTrench:
-                    return NovelTrenchParse(html, out novelText); ;
+                    return NovelTrenchParse(html, out novelText);
                 default:
                     return false;
             }
@@ -31,6 +33,7 @@ namespace WeebLib.Novel.Parser
             {
                 try
                 {
+                    //TODO: SINGLE SELECT
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h1[@class='tit']"))
                     {
                         novelText = node.InnerText;
@@ -38,7 +41,33 @@ namespace WeebLib.Novel.Parser
 
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='txt ']"))
                     {
-                        novelText = node.InnerText;
+                        novelText += node.InnerText;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
+                    return false;
+                }
+            }
+            else return false;
+            return true;
+        }
+
+        private static bool FullNovelParse(HtmlDocument html, out string novelText)
+        {
+            novelText = "";
+            if (html.DocumentNode != null)
+            {
+                try
+                {
+                    HtmlNode contentNode = html.DocumentNode.SelectSingleNode("//div[@id='chr-content']");
+                    novelText = HttpUtility.HtmlDecode(contentNode.SelectSingleNode("//a[@class='novel-title']").InnerText);
+                    novelText += "\n";
+                    foreach (HtmlNode node in contentNode.SelectNodes("//p"))
+                    {
+                        novelText += HttpUtility.HtmlDecode(node.InnerText);
+                        novelText += "\n";
                     }
                 }
                 catch (Exception e)
@@ -60,7 +89,7 @@ namespace WeebLib.Novel.Parser
                 {
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='text-left']"))
                     {
-                        novelText = HttpUtility.HtmlDecode(node.InnerText);
+                        novelText += HttpUtility.HtmlDecode(node.InnerText);
                     }
                 }
                 catch (Exception e)

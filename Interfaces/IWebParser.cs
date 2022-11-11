@@ -8,7 +8,7 @@ namespace WeebLib.Interfaces
 {
     public abstract class IWebParser<T>
     {
-        protected string? WorkDir { get; set; }
+        protected string? WorkDir = "";
         /// <summary>
         /// returns the amount of items fetched
         /// </summary>
@@ -22,7 +22,7 @@ namespace WeebLib.Interfaces
         protected abstract void SetWorkDir();
         internal string GetWorkDir()
         {
-            return WorkDir;
+            return string.IsNullOrEmpty(WorkDir) ? throw new NullReferenceException("WorkDir is null") : WorkDir;
         }
     }
 }

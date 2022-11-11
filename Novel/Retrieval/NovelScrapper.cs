@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace WeebLib.Novel.Retrieval
                 
                 var html = base.GetSite(novel.initalLink);
                 if (novel.initalLink.Contains("freewebnovel")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.FreeWebNovel, html, out novelText);
+                else if (novel.initalLink.Contains("fullnovel") || novel.initalLink.Contains("full-novel")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.FullNovel, html, out novelText);
                 else if (novel.initalLink.Contains("noveltrench")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.NovelTrench, html, out novelText);
 
                 if (novelText == "")
@@ -41,7 +43,13 @@ namespace WeebLib.Novel.Retrieval
                 }
 
                 //Total chapters becomes current chapter
-                string fileName = Path.Combine(dir, $"{novel.name} - Chapter {novel.totalChapters}.txt");
+                var novelDir = Path.Combine(dir, NovelUtil.RemoveSpecialCharacters(novel.name));
+                if (!Directory.Exists(novel.name))
+                {
+                    Directory.CreateDirectory(novelDir);
+                }
+                
+                string fileName = Path.Combine(novelDir, $"{NovelUtil.RemoveSpecialCharacters(novel.name)} - Chapter {novel.totalChapters}.txt");
                 if (!File.Exists(fileName)) File.Create(fileName).Dispose();
 
                 //FileStream writitng due to Numeric character reference
