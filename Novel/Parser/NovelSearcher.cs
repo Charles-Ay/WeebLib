@@ -195,7 +195,7 @@ namespace WeebLib.Novel.Parser
                     {
                         tmpNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']");
                     }
-                    catch(Exception)
+                    catch(Exception e)
                     {
                         nextPage = "DEAD";
                     }

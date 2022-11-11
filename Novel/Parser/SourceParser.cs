@@ -46,7 +46,7 @@ namespace WeebLib.Novel.Parser
                 }
                 catch (Exception e)
                 {
-                    Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
+                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }
@@ -72,7 +72,7 @@ namespace WeebLib.Novel.Parser
                 }
                 catch (Exception e)
                 {
-                    Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
+                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }
@@ -94,7 +94,7 @@ namespace WeebLib.Novel.Parser
                 }
                 catch (Exception e)
                 {
-                    Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
+                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }
