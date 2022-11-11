@@ -8,18 +8,15 @@ namespace WeebLib.WeeLibExceptions
 {
     public class WeebLibException : Exception
     {
-        private WeebLibException(string message, Exception inner) : base(message, inner)
+        protected WeebLibException(string message) : base(SetExceptionMessage(message))
         {
         }
-        private WeebLibException(string message) : base(message)
+        private static string SetExceptionMessage(string message)
         {
-        }
-        public WeebLibException(Exception inner, string message)
-        {
-            message += $" - thrown from {Logger.GetThrowFileAndLineNumber(Environment.StackTrace)}";
-            message = message.Replace(":", " at ");
+            message += $" - thrown from {Logger.GetFileAndLineNumber(Environment.StackTrace)}";
+            message = WeebLibUtil.ReplaceLastOccurrence(message, ":", " at ");
             Logger.writeToLog(message);
-            throw new WeebLibException(message);
+            return message;
         }
     }
 }

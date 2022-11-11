@@ -10,7 +10,14 @@ namespace WeebLib.Novel.Parser
 {
     internal class SourceParser
     {
-        internal bool Parse(NovelUtil.NovelSources source, HtmlDocument html, out string novelText)
+        /// <summary>
+        /// Parses the source of a novel
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="html"></param>
+        /// <param name="novelText"></param>
+        /// <returns>returns true if novel was sucessfully parsed</returns>
+        internal static bool Parse(NovelUtil.NovelSources source, HtmlDocument html, out string novelText)
         {
             novelText = "";
             switch (source)
@@ -33,20 +40,16 @@ namespace WeebLib.Novel.Parser
             {
                 try
                 {
-                    //TODO: SINGLE SELECT
-                    foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h1[@class='tit']"))
-                    {
-                        novelText = node.InnerText;
-                    }
+                    //Get title
+                    novelText += html.DocumentNode.SelectSingleNode("//h1[@class='tit']");
 
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='txt ']"))
                     {
                         novelText += node.InnerText;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }
@@ -70,9 +73,8 @@ namespace WeebLib.Novel.Parser
                         novelText += "\n";
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }
@@ -92,9 +94,8 @@ namespace WeebLib.Novel.Parser
                         novelText += HttpUtility.HtmlDecode(node.InnerText);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    //Logger.writeToLog($"HTML ERROR - Line:{Logger.GetLineNumber(e)} -- {e.Message}");
                     return false;
                 }
             }

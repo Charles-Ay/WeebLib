@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WeebLib.Interfaces;
+using WeebLib.Novel.NovelExceptions;
 using WeebLib.Novel.Parser;
 
 namespace WeebLib.Novel.Retrieval
@@ -28,18 +29,17 @@ namespace WeebLib.Novel.Retrieval
                 SourceParser sourceParser = new SourceParser();
                 
                 var html = base.GetSite(novel.initalLink);
-                if (novel.initalLink.Contains("freewebnovel")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.FreeWebNovel, html, out novelText);
-                else if (novel.initalLink.Contains("fullnovel") || novel.initalLink.Contains("full-novel")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.FullNovel, html, out novelText);
-                else if (novel.initalLink.Contains("noveltrench")) returnedValue = sourceParser.Parse(NovelUtil.NovelSources.NovelTrench, html, out novelText);
+                if (novel.initalLink.Contains("freewebnovel")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.FreeWebNovel, html, out novelText);
+                else if (novel.initalLink.Contains("fullnovel") || novel.initalLink.Contains("full-novel")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.FullNovel, html, out novelText);
+                else if (novel.initalLink.Contains("noveltrench")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.NovelTrench, html, out novelText);
 
-                if (novelText == "")
-                {
-                    // TODO: throw some internal error
-                }
                 if (returnedValue == false)
                 {
-                    //TODO: MAKE THIS A MORE SPECIFIC ERROR(CUSTOM EXCEPTION???)
-                    throw new InvalidOperationException();
+                    throw new NovelContentException("Unable to parse novel content", WeebLibUtil.ContentType.Novel);
+                }
+                else if (novelText == "")
+                {
+                    throw new NovelContentException("Empty novel content", WeebLibUtil.ContentType.Novel);
                 }
 
                 //Total chapters becomes current chapter

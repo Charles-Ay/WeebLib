@@ -9,23 +9,32 @@ using static WeebLib.Novel.Parser.NovelSearcher;
 
 namespace WeebLib.Novel.Parser
 {
-    public class NovelParser : IWebParser<NovelData>
+    public class NovelFetcher : IWebFetcher<NovelData>
     {
-        public NovelParser()
+        public NovelFetcher()
         {
             SetWorkDir();
         }
 
         protected override int Fetch(NovelData data, int start)
         {
+#pragma warning disable CS8604 // Possible null reference argument.
             if (data.source == NovelUtil.sourceToString(NovelUtil.NovelSources.FullNovel))
                 return new NovelScrapper().Scrape(new NovelSearcher().QueryFullNovelAndGetChapters(ref data, start), WorkDir);
             else return new NovelScrapper().Scrape(new NovelSearcher().GetNovelChapters(ref data, start), WorkDir);
+#pragma warning restore CS8604 // Possible null reference argument.
         }
-        
-        public int Fetch(SearchType searchResults, int first, int last)
+
+        /// <summary>
+        /// Fetches content from web
+        /// </summary>
+        /// <param name="searchResults">Results of a search</param>
+        /// <param name="first">first chapter to grab</param>
+        /// <param name="amount">amount of chapters to grab</param>
+        /// <returns>number of chapters retrived</returns>
+        public int Fetch(SearchType searchResults, int first, int amount)
         {
-            return Fetch(new NovelData(searchResults.name, last, searchResults.link, searchResults.source), first);
+            return Fetch(new NovelData(searchResults.name, amount, searchResults.link, searchResults.source), first);
         }
 
         protected override void SetWorkDir()

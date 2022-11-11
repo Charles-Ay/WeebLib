@@ -38,7 +38,7 @@ namespace WeebLib
             return lineNumber;
         }
 
-        internal static string GetThrowFileAndLineNumber(string stackTrace)
+        internal static string GetFileAndLineNumber(string stackTrace)
         {
             var line = "";
             const string lineSearch = "\\";

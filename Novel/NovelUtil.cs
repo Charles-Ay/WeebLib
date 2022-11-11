@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WeebLib.Novel.NovelExceptions;
 
 namespace WeebLib.Novel
 {
@@ -12,21 +13,30 @@ namespace WeebLib.Novel
         {
             FreeWebNovel, FullNovel, NovelTrench
         }
-
+        
+        /// <summary>
+        /// Turns source enum to string
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <returns></returns>
         public static string sourceToString(NovelSources sources)
         {
             return htmlSupportedWebsites[sources.ToString()];
         }
 
-        public static string sourceToStringUpper(NovelSources sources)
+        /// <summary>
+        /// Turns source enum to string with proper caseing
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <returns></returns>
+        public static string sourceToStringWithCasing(NovelSources sources)
         {
             foreach (var key in htmlSupportedWebsites.Keys)
             {
                 if (key == sources.ToString())
                     return htmlSupportedWebsites[key];
             }
-            //TODO: FIX THIS
-            throw new Exception();
+            return string.Empty;
         }
 
         public static string RemoveSpecialCharacters(string str)

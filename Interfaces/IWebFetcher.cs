@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace WeebLib.Interfaces
 {
-    public abstract class IWebParser<T>
+    public abstract class IWebFetcher<T>
     {
         protected string? WorkDir = "";
         /// <summary>
-        /// returns the amount of items fetched
+        /// Fetches content from web
         /// </summary>
         /// <param name="data">The class data used</param>
         /// <param name="start">The start point of the fetch(ie chapter 1)</param>
-        /// <returns></returns>
+        /// <returns>returns the amount of items fetched</returns>
         protected abstract int Fetch(T data, int start);
         /// <summary>
         /// Set the current working directory

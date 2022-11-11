@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WeebLib.Interfaces;
+using WeebLib.Novel.NovelExceptions;
 
 namespace WeebLib.Novel.Parser
 {
@@ -44,7 +45,7 @@ namespace WeebLib.Novel.Parser
         /// </summary>
         /// <param name="startChapter"></param>
         /// <param name="novelname"></param>
-        /// <returns></returns>
+        /// <returns>True if content was retrived successfully</returns>
         private bool SearchFreeWebNovel(int startChapter, string novelname)
         {
             var url = "https://freewebnovel.com/search/";
@@ -114,17 +115,12 @@ namespace WeebLib.Novel.Parser
                             }
                             else
                             {
-                                //throw some error or return false
+                                throw new LinkException("Error extracting link from FreeWebNovel");
                             }
                         }
-                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.FreeWebNovel);
+                        string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.FreeWebNovel);
                         sources.Add(output);
                     }
-                }
-
-                if (name.Count != numberOfResults || link.Count != numberOfResults || sources.Count != numberOfResults)
-                {
-                    //throw error
                 }
                 for (int i = 0; i < numberOfResults; ++i)
                 {
@@ -138,6 +134,12 @@ namespace WeebLib.Novel.Parser
             return true;
         }
 
+        /// <summary>
+        /// Searches for a novel on FullNove
+        /// </summary>
+        /// <param name="startChapter"></param>
+        /// <param name="novelname"></param>
+        /// <returns>True if content was retrived successfully</returns>
         private bool SearchFullNovel(int startChapter, string novelname)
         {
             string srchqry = novelname.Replace(" ", "+");
@@ -149,11 +151,8 @@ namespace WeebLib.Novel.Parser
                 List<string> name = new List<string>();
                 List<string> link = new List<string>();
                 List<string> sources = new List<string>();
-
-                //string tmpString = html.DocumentNode.SelectSingleNode("//h1[@class='search_title']").InnerText;
-                //tmpString = Regex.Match(tmpString, @"\d+").Value;
-                //numberOfResults = Int32.Parse(tmpString);
                 string nextPage = "";
+                
                 if (html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a") != null)
                 {
                     var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
@@ -181,10 +180,10 @@ namespace WeebLib.Novel.Parser
                             }
                             else
                             {
-                                //throw some error or return false
+                                throw new LinkException("Error extracting link from FullNovel");
                             }
                         }
-                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.FullNovel);
+                        string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.FullNovel);
                         sources.Add(output);
                         ++numberOfResults;
                     }
@@ -195,7 +194,7 @@ namespace WeebLib.Novel.Parser
                     {
                         tmpNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']");
                     }
-                    catch(Exception e)
+                    catch(Exception)
                     {
                         nextPage = "DEAD";
                     }
@@ -214,12 +213,6 @@ namespace WeebLib.Novel.Parser
                         nextPage = nextPage.Replace("&#x3D;", "=");
                         nextPage = nextPage.Replace("&amp;", "&");
                         html = Request(nextPage);
-                    }
-
-                    if (name.Count != numberOfResults || link.Count != numberOfResults || sources.Count != numberOfResults)
-                    {
-                        //throw error
-                        throw new InvalidOperationException();
                     }
                     for (int i = 0; i < numberOfResults; ++i)
                     {
@@ -240,8 +233,7 @@ namespace WeebLib.Novel.Parser
         /// </summary>
         /// <param name="startChapter"></param>
         /// <param name="novelname"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>True if content was retrived successfully</returns>
         private bool SearchNovelTrench(int startChapter, string novelname)
         {
             string srchqry = novelname.Replace(" ", "+");
@@ -256,7 +248,6 @@ namespace WeebLib.Novel.Parser
                 List<string> sources = new List<string>();
 
                 //get total amount of results
-
                 string tmpString = html.DocumentNode.SelectSingleNode("//h1[@class='h4']").InnerText;
                 tmpString = Regex.Match(tmpString, @"\d+").Value;
                 numberOfResults = Int32.Parse(tmpString);
@@ -282,10 +273,10 @@ namespace WeebLib.Novel.Parser
                             }
                             else
                             {
-                                //throw some error or return false
+                                throw new LinkException("Error extracting link from NovelTrench");
                             }
                         }
-                        string output = NovelUtil.sourceToStringUpper(NovelUtil.NovelSources.NovelTrench);
+                        string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.NovelTrench);
                         sources.Add(output);
                     }
                     var tmpNode = html.DocumentNode.SelectSingleNode("//div[@class='nav-previous float-left']");
@@ -304,12 +295,6 @@ namespace WeebLib.Novel.Parser
                     }
                     else nextPage = "DEAD";
                 }
-
-                if (name.Count != numberOfResults || link.Count != numberOfResults || sources.Count != numberOfResults)
-                {
-                    //throw error
-                    throw new InvalidOperationException();
-                }
                 for (int i = 0; i < numberOfResults; ++i)
                 {
                     results.Add(new SearchType(name[i], link[i], sources[i]));
@@ -317,7 +302,7 @@ namespace WeebLib.Novel.Parser
             }
             else
             {
-                //ask for new input
+                return false;
             }
             return true;
         }
@@ -325,8 +310,7 @@ namespace WeebLib.Novel.Parser
         public List<SearchType> getResults()
         {
             if (results.Count > 0) return results;
-            //TODO: Make this exp better
-            else throw new Exception();
+            else throw new SearchException("No results found");
         }
 
         internal List<NovelData> QueryFullNovelAndGetChapters(ref NovelData novel, int first)
