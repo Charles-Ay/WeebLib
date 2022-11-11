@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WeebLib.WeeLibExceptions;
-using static WeebLib.WeebLibUtil;
+using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Novel.NovelExceptions
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WeebLib.WeebLibUtil;
+using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.WeeLibExceptions
 {

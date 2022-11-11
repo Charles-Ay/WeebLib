@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.Retrieval;
-using static WeebLib.Novel.Parser.NovelSearcher;
+using static WeebLib.Novel.Retrieval.NovelSearcher;
 
 namespace WeebLib.Novel.Parser
 {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.NovelExceptions;
 
-namespace WeebLib.Novel.Parser
+namespace WeebLib.Novel.Retrieval
 {
     public class NovelSearcher : ISearcher
     {
@@ -66,7 +66,7 @@ namespace WeebLib.Novel.Parser
                 streamWriter.Write(data);
             }
 
-            HtmlAgilityPack.HtmlDocument html = new HtmlDocument();
+            HtmlDocument html = new HtmlDocument();
             html.OptionFixNestedTags = true;
 
             var response = httpRequest.GetResponse();
@@ -90,7 +90,7 @@ namespace WeebLib.Novel.Parser
                 //get total amount of results
                 try
                 {
-                    numberOfResults = Int32.Parse(html.DocumentNode.SelectSingleNode("//em[@class='num']").InnerText);
+                    numberOfResults = int.Parse(html.DocumentNode.SelectSingleNode("//em[@class='num']").InnerText);
                 }
                 catch (NullReferenceException)
                 {
@@ -152,7 +152,7 @@ namespace WeebLib.Novel.Parser
                 List<string> link = new List<string>();
                 List<string> sources = new List<string>();
                 string nextPage = "";
-                
+
                 if (html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a") != null)
                 {
                     var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
@@ -162,8 +162,8 @@ namespace WeebLib.Novel.Parser
                 {
                     nextPage = "WILL BE DEAD";
                 }
-               
-               
+
+
                 while (nextPage != "DEAD")
                 {
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='novel-title']"))
@@ -189,16 +189,16 @@ namespace WeebLib.Novel.Parser
                     }
 
                     HtmlNode tmpNode = null;
-                    
+
                     try
                     {
                         tmpNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']");
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         nextPage = "DEAD";
                     }
-                    
+
                     if (nextPage == "WILL BE DEAD")
                     {
                         nextPage = "DEAD";
@@ -250,7 +250,7 @@ namespace WeebLib.Novel.Parser
                 //get total amount of results
                 string tmpString = html.DocumentNode.SelectSingleNode("//h1[@class='h4']").InnerText;
                 tmpString = Regex.Match(tmpString, @"\d+").Value;
-                numberOfResults = Int32.Parse(tmpString);
+                numberOfResults = int.Parse(tmpString);
 
 
 
@@ -339,7 +339,7 @@ namespace WeebLib.Novel.Parser
                 var parent = node.ParentNode;
                 var link = parent.GetAttributeValue("href", string.Empty);
                 int num = int.Parse(Regex.Match(node.InnerHtml, @"\d+").Value);
-                if(num >= first && num <= novel.totalChapters)
+                if (num >= first && num <= novel.totalChapters)
                 {
                     novels.Add(new NovelData(novel.name, num, link, novel.source));
                 }

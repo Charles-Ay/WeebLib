@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.NovelExceptions;
 using WeebLib.Novel.Parser;
+using WeebLib.Utility;
 
 namespace WeebLib.Novel.Retrieval
 {
