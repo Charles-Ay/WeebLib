@@ -31,5 +31,34 @@ namespace WeebLib.Utility
 
             return Source.Remove(place, Find.Length).Insert(place, Replace);
         }
+        
+        public static string RemoveSpecialCharacters(string str)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in str)
+            {
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '.' || c == '_' || c == ' ')
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Hold the data for the search results
+        /// </summary>
+        public class SearchType
+        {
+            public SearchType(string name, string link, string source)
+            {
+                this.name = name;
+                this.link = link;
+                this.source = source;
+            }
+            public string name { get; private set; }
+            public string link { get; private set; }
+            public string source { get; private set; }
+        }
     }
 }

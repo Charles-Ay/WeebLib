@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.Retrieval;
 using static WeebLib.Novel.Retrieval.NovelSearcher;
+using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Novel.Parser
 {

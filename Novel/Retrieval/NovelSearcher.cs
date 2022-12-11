@@ -8,15 +8,12 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.NovelExceptions;
+using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Novel.Retrieval
 {
     public class NovelSearcher : ISearcher
     {
-        /// <summary>
-        /// The website links fetched
-        /// </summary>
-        protected List<SearchType> results = new List<SearchType>();
         /// <summary>
         /// number of results fetched
         /// </summary>
@@ -153,6 +150,7 @@ namespace WeebLib.Novel.Retrieval
                 List<string> sources = new List<string>();
                 string nextPage = "";
 
+                //Get next page
                 if (html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a") != null)
                 {
                     var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
@@ -307,12 +305,6 @@ namespace WeebLib.Novel.Retrieval
             return true;
         }
 
-        public List<SearchType> getResults()
-        {
-            if (results.Count > 0) return results;
-            else throw new SearchException("No results found");
-        }
-
         internal List<NovelData> QueryFullNovelAndGetChapters(ref NovelData novel, int first)
         {
             List<NovelData> novels = new List<NovelData>();
@@ -321,7 +313,7 @@ namespace WeebLib.Novel.Retrieval
             var httpRequest = (HttpWebRequest)WebRequest.Create(novel.initalLink);
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
             httpRequest.Method = "GET";
-            //mimck chrome
+            //mimick chrome
             httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
 
             var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
@@ -367,22 +359,6 @@ namespace WeebLib.Novel.Retrieval
                 novels.Add(new NovelData(novel.name, i, curchapter, novel.source));
             }
             return novels;
-        }
-
-        /// <summary>
-        /// Hold the data for the search results
-        /// </summary>
-        public class SearchType
-        {
-            public SearchType(string name, string link, string source)
-            {
-                this.name = name;
-                this.link = link;
-                this.source = source;
-            }
-            public string name { get; private set; }
-            public string link { get; private set; }
-            public string source { get; private set; }
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Web;
 
 namespace WeebLib.Novel.Parser
 {
-    internal class SourceParser
+    internal class NovelSourceParser
     {
         /// <summary>
         /// Parses the source of a novel

@@ -5,11 +5,18 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WeebLib.Novel.NovelExceptions;
+using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Interfaces
 {
     public abstract class ISearcher
     {
+        /// <summary>
+        /// The website links fetched
+        /// </summary>
+        protected List<SearchType> results = new List<SearchType>();
+        
         /// <summary>
         /// Searches for a item
         /// </summary>
@@ -41,6 +48,12 @@ namespace WeebLib.Interfaces
                 }
             }
             return html;
+        }
+
+        public List<SearchType> getResults()
+        {
+            if (results.Count > 0) return results;
+            else throw new SearchException("No results found");
         }
     }
 }

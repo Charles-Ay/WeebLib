@@ -27,12 +27,12 @@ namespace WeebLib.Novel.Retrieval
 
             foreach (NovelData novel in data)
             {
-                SourceParser sourceParser = new SourceParser();
+                NovelSourceParser sourceParser = new NovelSourceParser();
                 
                 var html = base.GetSite(novel.initalLink);
-                if (novel.initalLink.Contains("freewebnovel")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.FreeWebNovel, html, out novelText);
-                else if (novel.initalLink.Contains("fullnovel") || novel.initalLink.Contains("full-novel")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.FullNovel, html, out novelText);
-                else if (novel.initalLink.Contains("noveltrench")) returnedValue = SourceParser.Parse(NovelUtil.NovelSources.NovelTrench, html, out novelText);
+                if (novel.initalLink.Contains("freewebnovel")) returnedValue = NovelSourceParser.Parse(NovelUtil.NovelSources.FreeWebNovel, html, out novelText);
+                else if (novel.initalLink.Contains("fullnovel") || novel.initalLink.Contains("full-novel")) returnedValue = NovelSourceParser.Parse(NovelUtil.NovelSources.FullNovel, html, out novelText);
+                else if (novel.initalLink.Contains("noveltrench")) returnedValue = NovelSourceParser.Parse(NovelUtil.NovelSources.NovelTrench, html, out novelText);
 
                 if (returnedValue == false)
                 {
@@ -44,13 +44,13 @@ namespace WeebLib.Novel.Retrieval
                 }
 
                 //Total chapters becomes current chapter
-                var novelDir = Path.Combine(dir, NovelUtil.RemoveSpecialCharacters(novel.name));
+                var novelDir = Path.Combine(dir, WeebLibUtil.RemoveSpecialCharacters(novel.name));
                 if (!Directory.Exists(novel.name))
                 {
                     Directory.CreateDirectory(novelDir);
                 }
                 
-                string fileName = Path.Combine(novelDir, $"{NovelUtil.RemoveSpecialCharacters(novel.name)} - Chapter {novel.totalChapters}.txt");
+                string fileName = Path.Combine(novelDir, $"{WeebLibUtil.RemoveSpecialCharacters(novel.name)} - Chapter {novel.totalChapters}.txt");
                 if (!File.Exists(fileName)) File.Create(fileName).Dispose();
 
                 //FileStream writitng due to Numeric character reference
