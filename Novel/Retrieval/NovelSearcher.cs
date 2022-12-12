@@ -12,6 +12,9 @@ using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Novel.Retrieval
 {
+    //TODO: CREATE FULL SEARCH(ALL SOURCES)
+    //TODO: ADD FREEWEBNOVEL IMAGES
+    //TODO: SET FREE AS DEFAULT SOURCE
     public class NovelSearcher : ISearcher
     {
         /// <summary>
@@ -147,11 +150,12 @@ namespace WeebLib.Novel.Retrieval
             {
                 List<string> name = new List<string>();
                 List<string> link = new List<string>();
+                List<string> image = new List<string>();
                 List<string> sources = new List<string>();
                 string nextPage = "";
 
                 //Get next page
-                if (html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a") != null)
+                if (html.DocumentNode.SelectSingleNode("//li[@class='next ']")!= null)
                 {
                     var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
                     nextPage = nextPageNode.GetAttributeValue("href", string.Empty);
@@ -164,17 +168,24 @@ namespace WeebLib.Novel.Retrieval
 
                 while (nextPage != "DEAD")
                 {
+                    foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='col-xs-3']")) {
+                        //go up some parents to get the child node of the cover image
+                        var childNode = node.ChildNodes[1];
+                        var imgLink = childNode.SelectSingleNode("img").Attributes[0].Value;
+                        image.Add(imgLink);
+                    }
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='novel-title']"))
                     {
                         name.Add(node.InnerText);
                         var newNodes = node.SelectNodes("a");
                         foreach (var innerNode in newNodes)
                         {
-                            string tmp = innerNode.GetAttributeValue("href", string.Empty);
-                            if (tmp != string.Empty)
+                            string pageLink = innerNode.GetAttributeValue("href", string.Empty);
+
+                            if (pageLink != string.Empty)
                             {
-                                tmp = tmp.Replace("/nb/", "/ajax/chapter-archive?novelId=");
-                                link.Add(tmp);
+                                pageLink = pageLink.Replace("/nb/", "/ajax/chapter-archive?novelId=");
+                                link.Add(pageLink);
                             }
                             else
                             {
@@ -214,7 +225,7 @@ namespace WeebLib.Novel.Retrieval
                     }
                     for (int i = 0; i < numberOfResults; ++i)
                     {
-                        results.Add(new SearchType(name[i], link[i], sources[i]));
+                        results.Add(new SearchType(name[i], link[i], sources[i], image[i]));
                     }
                 }
             }
