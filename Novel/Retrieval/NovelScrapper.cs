@@ -16,10 +16,9 @@ namespace WeebLib.Novel.Retrieval
     internal class NovelScrapper : IWebScrapper<NovelData>
     {
         protected string? novelText;
-        public override int Scrape(List<NovelData> data, string dir)
+        public override string Scrape(List<NovelData> data, string dir, bool outputToFile = true)
         {
             bool returnedValue = false;
-            int amount = 0;
 
             //Check if the "Novels" Dir exist. If not make a new one
             if (!Directory.Exists(Path.Combine(dir, "Novels"))) Directory.CreateDirectory(Path.Combine(dir, "Novels"));
@@ -43,28 +42,36 @@ namespace WeebLib.Novel.Retrieval
                     throw new NovelContentException("Empty novel content", WeebLibUtil.ContentType.Novel);
                 }
 
-                //Total chapters becomes current chapter
-                var novelDir = Path.Combine(dir, WeebLibUtil.RemoveSpecialCharacters(novel.name));
-                if (!Directory.Exists(novel.name))
+                if (outputToFile)
                 {
-                    Directory.CreateDirectory(novelDir);
-                }
-                
-                string fileName = Path.Combine(novelDir, $"{WeebLibUtil.RemoveSpecialCharacters(novel.name)} - Chapter {novel.totalChapters}.txt");
-                if (!File.Exists(fileName)) File.Create(fileName).Dispose();
+                    //Total chapters becomes current chapter
+                    var novelDir = Path.Combine(dir, novel.name);
+                    if (!Directory.Exists(novel.name))
+                    {
+                        Directory.CreateDirectory(novelDir);
+                    }
 
-                //FileStream writitng due to Numeric character reference
-                //https://en.wikipedia.org/wiki/Numeric_character_reference
-                FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate);
-                StreamWriter streamWriter = new StreamWriter(stream);
-                streamWriter.WriteLine(novelText);
-                streamWriter.Close();
-                stream.Close();
-                
-                //add to amount of chapters found
-                ++amount;
+                    string fileName = Path.Combine(novelDir, $"{novel.name} - Chapter {novel.totalChapters}.txt");
+                    if (!File.Exists(fileName)) File.Create(fileName).Dispose();
+
+                    //FileStream writitng due to Numeric character reference
+                    //https://en.wikipedia.org/wiki/Numeric_character_reference
+                    FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate);
+                    StreamWriter streamWriter = new StreamWriter(stream);
+                    streamWriter.WriteLine(novelText);
+                    streamWriter.Close();
+                    stream.Close();
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(novelText))
+                    {
+                        throw new NovelContentException("Empty novel content", WeebLibUtil.ContentType.Novel);
+                    }
+                    return novelText;
+                }
             }
-            return amount;
+            return "";
         }
     }
 }

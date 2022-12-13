@@ -10,13 +10,15 @@ namespace WeebLib.Interfaces
     {
         public string name { get; private set; }
         public int totalChapters { get; private set; }
+        public int latestChapter { get; private set; }
         internal string initalLink { get; private set; }
         public string source { get; private set; }
 
-        public IData(string name, int totalChapterNum, string initalLink, string source)
+        public IData(string name, int totalChapterNum, int latestChapter, string initalLink, string source)
         {
             this.name = name;
-            totalChapters = totalChapterNum;
+            this.totalChapters = totalChapterNum;
+            this.latestChapter = latestChapter;
             this.initalLink = initalLink;
             this.source = source;
         }

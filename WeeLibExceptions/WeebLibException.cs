@@ -9,8 +9,10 @@ namespace WeebLib.WeeLibExceptions
 {
     public class WeebLibException : Exception
     {
+        public string nonStackMessage = "";
         protected WeebLibException(string message) : base(SetExceptionMessage(message))
         {
+            nonStackMessage = message;
         }
         private static string SetExceptionMessage(string message)
         {

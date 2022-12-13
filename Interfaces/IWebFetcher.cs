@@ -14,12 +14,13 @@ namespace WeebLib.Interfaces
         /// </summary>
         /// <param name="data">The class data used</param>
         /// <param name="start">The start point of the fetch(ie chapter 1)</param>
-        /// <returns>returns the amount of items fetched</returns>
-        protected abstract int Fetch(T data, int start);
+        /// <param name="outputToFile">Output results to file</param>
+        /// <returns>text if output to file is false</returns>
+        protected abstract string Fetch(T data, int start, bool outputToFile = true);
         /// <summary>
         /// Set the current working directory
         /// </summary>
-        protected abstract void SetWorkDir();
+        protected abstract void SetWorkDir(string dir = "");
         internal string GetWorkDir()
         {
             return string.IsNullOrEmpty(WorkDir) ? throw new NullReferenceException("WorkDir is null") : WorkDir;

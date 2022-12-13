@@ -14,9 +14,10 @@ namespace WeebLib.Interfaces
         /// Scrape the data from the source
         /// </summary>
         /// <param name="data">Pages to scrape</param>
-        /// <param name="dir">where to output results</param>
-        /// <returns>number of sites retrived</returns>
-        public abstract int Scrape(List<T> data, string dir);
+        /// <param name="dir">Where to output results</param>
+        /// <param name="outputToFile">Output results to file</param>
+        /// <returns>text if output to file is false</returns>
+        public abstract string Scrape(List<T> data, string dir, bool outputToFile = true);
 
         /// <summary>
         /// Pings the website and gets the the raw html from the source

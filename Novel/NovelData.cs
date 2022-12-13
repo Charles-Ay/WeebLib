@@ -9,6 +9,6 @@ namespace WeebLib.Novel
 {
     public class NovelData : IData
     {
-        public NovelData(string name, int totalChapterNum, string initalLink, string source) : base(name, totalChapterNum, initalLink, source) { }
+        public NovelData(string name, int totalChapterNum, int latestChapter, string initalLink, string source) : base(name, totalChapterNum, latestChapter, initalLink, source) { }
     }
 }

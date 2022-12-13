@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.Retrieval;
+using WeebLib.Utility;
 using static WeebLib.Novel.Retrieval.NovelSearcher;
 using static WeebLib.Utility.WeebLibUtil;
 
@@ -17,12 +18,12 @@ namespace WeebLib.Novel.Parser
             SetWorkDir();
         }
 
-        protected override int Fetch(NovelData data, int start)
+        protected override string Fetch(NovelData data, int start, bool outputToFile = true)
         {
 #pragma warning disable CS8604 // Possible null reference argument.
             if (data.source == NovelUtil.sourceToString(NovelUtil.NovelSources.FullNovel))
-                return new NovelScrapper().Scrape(new NovelSearcher().QueryFullNovelAndGetChapters(ref data, start), WorkDir);
-            else return new NovelScrapper().Scrape(new NovelSearcher().GetNovelChapters(ref data, start), WorkDir);
+                return new NovelScrapper().Scrape(new NovelSearcher().QueryFullNovelAndGetChapters(ref data, start), WorkDir, outputToFile);
+            else return new NovelScrapper().Scrape(new NovelSearcher().GetNovelChapters(ref data, start), WorkDir, outputToFile);
 #pragma warning restore CS8604 // Possible null reference argument.
         }
 
@@ -32,28 +33,48 @@ namespace WeebLib.Novel.Parser
         /// <param name="searchResults">Results of a search</param>
         /// <param name="first">first chapter to grab</param>
         /// <param name="amount">amount of chapters to grab</param>
-        /// <returns>number of chapters retrived</returns>
-        public int Fetch(SearchType searchResults, int first, int amount)
+        /// 
+        /// <returns>text if output to file is false</returns>
+        public string Fetch(SearchType searchResults, int first, int amount, bool outputToFile = true)
         {
-            return Fetch(new NovelData(searchResults.name, amount, searchResults.link, searchResults.source), first);
+            return Fetch(new NovelData(WeebLibUtil.RemoveSpecialCharacters(searchResults.name), amount, searchResults.latest, searchResults.link, searchResults.source), first, outputToFile);
         }
 
-        protected override void SetWorkDir()
+        public void SetWorkDir(string dir, bool create)
         {
-            string dir = Directory.GetCurrentDirectory();
-            var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
-
-            foreach (var file in files)
+            if (create)
             {
-                if (file.Contains("novels") || file.Contains("Novels"))
+                SetWorkDir();
+            }
+            else
+            {
+                SetWorkDir(dir);
+            }
+        }
+        
+        protected override void SetWorkDir(string dir = "")
+        {
+            if(dir == "")
+            {
+                dir = Directory.GetCurrentDirectory();
+                var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
+
+                foreach (var file in files)
                 {
+                    if (file.Contains("novels") || file.Contains("Novels"))
+                    {
+                        WorkDir = dir;
+                    }
+                }
+                if (string.IsNullOrEmpty(WorkDir))
+                {
+                    string newdir = Path.Combine(dir, "Novels");
+                    Directory.CreateDirectory(newdir);
                     WorkDir = dir;
                 }
             }
-            if(string.IsNullOrEmpty(WorkDir))
+            else
             {
-                string newdir = Path.Combine(dir, "Novels");
-                Directory.CreateDirectory(newdir);
                 WorkDir = dir;
             }
         }
