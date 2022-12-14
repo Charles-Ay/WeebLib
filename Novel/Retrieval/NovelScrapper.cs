@@ -10,12 +10,13 @@ using WeebLib.Interfaces;
 using WeebLib.Novel.NovelExceptions;
 using WeebLib.Novel.Parser;
 using WeebLib.Utility;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WeebLib.Novel.Retrieval
 {
     internal class NovelScrapper : IWebScrapper<NovelData>
     {
-        protected string? novelText;
+        protected string novelText = "";
         public override string Scrape(List<NovelData> data, string dir, bool outputToFile = true)
         {
             bool returnedValue = false;
@@ -42,6 +43,9 @@ namespace WeebLib.Novel.Retrieval
                     throw new NovelContentException("Empty novel content", WeebLibUtil.ContentType.Novel);
                 }
 
+                RemoveExtraText();
+                ReplaceTextFormating();
+                
                 if (outputToFile)
                 {
                     //Total chapters becomes current chapter
@@ -72,6 +76,26 @@ namespace WeebLib.Novel.Retrieval
                 }
             }
             return "";
+        }
+
+        private void ReplaceTextFormating()
+        {
+            novelText = novelText.Replace("&mdash;", "-");
+            novelText = novelText.Replace("&amp;", "&");
+            novelText = novelText.Replace("HtmlAgilityPack.HtmlNode", "");
+        }
+
+        private void RemoveExtraText()
+        {
+            novelText = novelText.Replace("𝐹𝑩𝒐𝑜𝑘𝑚𝙖𝙧𝑘 this website i𝚗𝑛𝘳e𝚊𝒹.c𝒐𝙢 to update the latest 𝒏𝗼𝘷𝘦𝘭𝘴.", "");
+            novelText = novelText.Replace("𝘝𝐢𝐬𝐢𝐭 𝘧ree𝘸𝒆𝙗n𝒏𝗼vel.c𝒐𝙢, for the best novel reading 𝒆𝒙𝒑𝒆𝘳𝘪𝘦𝘯𝒄𝒆.", "");
+            novelText = novelText.Replace("F𝙤𝒍𝒍𝑜𝑤 current novels on 𝘧𝑟ee𝘸e𝙗𝙣ov𝒆l&period;𝑐𝙤m.", "");
+            novelText = novelText.Replace("𝙉𝙚𝙬 novel chapters are published 𝙤𝙣 fr𝘦𝒆𝙬e𝘣𝘯𝒐vel.𝒄𝗼𝙢.", "");
+            novelText = novelText.Replace("𝘕𝙚𝑤 novel chapters are published 𝗼𝗻 𝑓ree𝘄e𝗯𝗻ov𝒆l&period;𝘤𝗼𝑚.", "");
+            novelText = novelText.Replace("𝑩𝒐𝑜𝑘𝑚𝙖𝙧𝑘 this website f𝑟𝘦𝘦𝙬e𝗯𝗻ov𝐞l.𝒄𝘰𝒎 to update the latest 𝑛𝙤𝑣𝙚𝙡𝙨.", "");
+            novelText = novelText.Replace("𝐵𝗼𝗼𝗸𝗺𝗮𝗿𝗸 this website 𝑓𝑟ee𝘸e𝘣𝗻ov𝒆l*𝘤𝙤𝘮 to update the latest 𝗻𝗼𝑣𝘦𝘭𝘴.", "");
+            novelText = novelText.Replace("𝙏𝙝𝙞𝙨 chapter is updated 𝙗𝙮 𝚏𝘳e𝑒𝘄e𝙗𝘯ov𝐞l.c𝙤m.", "");
+            novelText = novelText.Replace("𝑻𝒉𝒊𝒔 chapter upload first 𝒂𝒕 fr𝑒e𝙬𝑒𝗯𝙣ov𝒆l.𝒄𝗼m.", "");
         }
     }
 }

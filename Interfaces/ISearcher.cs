@@ -50,10 +50,15 @@ namespace WeebLib.Interfaces
             return html;
         }
 
-        public List<SearchType> getResults()
+        public List<SearchType> Results()
         {
             if (results.Count > 0) return results;
             else throw new SearchException("No results found");
+        }
+
+        protected void Clear()
+        {
+            results.Clear();
         }
     }
 }

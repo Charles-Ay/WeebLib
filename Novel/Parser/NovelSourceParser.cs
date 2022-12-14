@@ -41,7 +41,7 @@ namespace WeebLib.Novel.Parser
                 try
                 {
                     //Get title
-                    novelText += html.DocumentNode.SelectSingleNode("//h1[@class='tit']");
+                    novelText += html.DocumentNode.SelectSingleNode("//h1[@class='tit']").InnerText + "\n";
 
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='txt ']"))
                     {

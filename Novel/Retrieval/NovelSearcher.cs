@@ -24,6 +24,7 @@ namespace WeebLib.Novel.Retrieval
         int numberOfResults;
         public override bool Search(int start, string title, string source = "")
         {
+            Clear();
             switch (source)
             {
                 case "freewebnovel":
@@ -41,7 +42,10 @@ namespace WeebLib.Novel.Retrieval
 
         private bool SearchAll(int start, string title)
         {
-            return SearchFreeWebNovel(start, title) && SearchFullNovel(start, title);
+            bool searchFree = SearchFreeWebNovel(start, title);
+            bool searchFull = SearchFullNovel(start, title);
+            if (searchFull || searchFree) return true;
+            return false;
         }
 
         /// <summary>
@@ -104,12 +108,20 @@ namespace WeebLib.Novel.Retrieval
                     throw new SearchException("Search query must be at least 3 characters long");
                 }
 
-                var latestChapters = html.DocumentNode.SelectNodes("//span[@class='s1']");
-                foreach(var chap in latestChapters)
+                try
                 {
-                    string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
-                    latest.Add(int.Parse(chapTxt));
+                    var latestChapters = html.DocumentNode.SelectNodes("//span[@class='s1']");
+                    foreach (var chap in latestChapters)
+                    {
+                        string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
+                        latest.Add(int.Parse(chapTxt));
+                    }
                 }
+                catch (NullReferenceException)
+                {
+                    return false;
+                }
+
                 
                 foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='pic']"))
                 {
@@ -193,11 +205,29 @@ namespace WeebLib.Novel.Retrieval
 
                 while (nextPage != "DEAD")
                 {
+                    int x = 0;
                     var latestChapters = html.DocumentNode.SelectNodes("//span[@class='chr-text']");
-                    foreach (var chap in latestChapters)
+                    try
                     {
-                        string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
-                        latest.Add(int.Parse(chapTxt));
+                        foreach (var chap in latestChapters)
+                        {
+                            string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
+                            if (chapTxt != "")
+                            {
+                                latest.Add(int.Parse(chapTxt));
+                            }
+                            else
+                            {
+                                chapTxt = Regex.Match(chap.ParentNode.OuterHtml, @"\d+").Value;
+                                latest.Add(int.Parse(chapTxt));
+                            }
+                            latest.Add(int.Parse(chapTxt));
+                            ++x;
+                        }
+                    }
+                    catch (NullReferenceException)
+                    {
+                        return false;
                     }
 
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='col-xs-3']")) {
@@ -369,12 +399,18 @@ namespace WeebLib.Novel.Retrieval
             var html = new HtmlDocument();
             html.LoadHtml(results);
 
-
+            int nextNum = 0;
             foreach (HtmlNode node in html.DocumentNode.SelectNodes("//span[@class='nchr-text']"))
             {
+
                 var parent = node.ParentNode;
                 var link = parent.GetAttributeValue("href", string.Empty);
                 int num = int.Parse(Regex.Match(node.InnerHtml, @"\d+").Value);
+                //Hack: sometimes a chapter is missing
+                if (nextNum > 0 && num > nextNum)
+                {
+                    novels.Add(new NovelData(novel.name, nextNum, novel.latestChapter, link, novel.source));
+                }
 
                 if (novels.Count == 0 || link != novels[num - 2].initalLink ||  num <= novel.latestChapter)
                 {
@@ -384,6 +420,7 @@ namespace WeebLib.Novel.Retrieval
                     }
                 }
                 else break;
+                nextNum = num + 1;
             }
             return novels;
         }
@@ -397,7 +434,11 @@ namespace WeebLib.Novel.Retrieval
         internal List<NovelData> GetNovelChapters(ref NovelData novel, int first)
         {
             List<NovelData> novels = new List<NovelData>();
-            for (int i = first; i <= novel.totalChapters; ++i)
+            //HACK: FOR WHEN SOMEONE WANTS TO DOWNLOAD A SINGLE CHAPTER OTHER THAN FIRST
+            int total = novel.totalChapters;
+            if (first > novel.totalChapters) total += first;
+            
+            for (int i = first; i <= total; ++i)
             {
                 //get current chapter link
                 //replace numbers with more than one digit with ""
