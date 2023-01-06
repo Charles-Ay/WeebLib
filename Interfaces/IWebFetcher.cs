@@ -8,7 +8,7 @@ namespace WeebLib.Interfaces
 {
     public abstract class IWebFetcher<T>
     {
-        protected string? WorkDir = "";
+        protected string WorkDir = "";
         /// <summary>
         /// Fetches content from web
         /// </summary>
