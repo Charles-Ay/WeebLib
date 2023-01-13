@@ -48,27 +48,5 @@ namespace WeebLib.Interfaces
             }
             return html;
         }
-
-        //[STAThread]
-        //protected string GetDynamicSite(string url)
-        //{
-        //    var web = new HtmlWeb();
-        //    web.BrowserTimeout = TimeSpan.FromSeconds(30);
-
-        //    var doc = web.LoadFromBrowser(url, o =>
-        //    {
-        //        var webBrowser = (WebBrowser)o;
-
-        //        // Wait until the list shows up
-        //        return webBrowser.Document.Body.InnerHtml.Contains("c-ProductList");
-        //    });
-
-        //    // Show results
-        //    var list = doc.DocumentNode.SelectSingleNode("//div[@class='c-ProductList row ss-targeted']");
-        //    foreach (var title in list.SelectNodes(".//h2[@class='c-ProductListItem__title ng-binding']"))
-        //    {
-        //        Console.WriteLine(title.InnerText);
-        //    }
-        //}
     }
 }

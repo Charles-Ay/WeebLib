@@ -10,7 +10,7 @@ namespace WeebLib.Manga
     {
         public enum MangaSources
         {
-            MangaSee
+            KissManga
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace WeebLib.Manga
 
         private static Dictionary<string, string> supportedMangaWebsites = new Dictionary<string, string>()
         {
-            {"MangaSee", "mangasee"}
+            {"KissManga", "kissmanga"}
         };
     }
 }

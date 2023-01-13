@@ -21,7 +21,7 @@ namespace WeebLib.Manga.Parser
         }
         protected override string Fetch(MangaData data, int start, bool outputToFile = true)
         {
-            return new MangaScrapper().Scrape(new MangaSearcher().QueryMangaSeeANdGetChapters(ref data, start), WorkDir);
+            return new MangaScrapper().Scrape(new MangaSearcher().QueryKissMangaAndGetChapters(ref data, start), WorkDir);
         }
 
         public string Fetch(SearchType searchResults, int first, int amount, bool outputToFile)

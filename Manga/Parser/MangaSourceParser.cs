@@ -4,6 +4,7 @@ using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WeebLib.Novel;
@@ -19,54 +20,37 @@ namespace WeebLib.Manga.Parser
         /// <param name="html"></param>
         /// <param name="mangaText"></param>
         /// <returns>returns true if novel was sucessfully parsed</returns>
-        internal static bool Parse(MangaUtil.MangaSources source, HtmlDocument html)
+        internal static List<string> Parse(MangaUtil.MangaSources source, HtmlDocument html)
         {
             switch (source)
             {
-                case MangaUtil.MangaSources.MangaSee:
-                    return MangaSeeParse(html);
+                case MangaUtil.MangaSources.KissManga:
+                    return KissMangaParse(html);
                 default:
-                    return false;
+                    return new List<string>();
             }
         }
         
-        private static bool MangaSeeParse(HtmlDocument html)
+        private static List<string> KissMangaParse(HtmlDocument html)
         {
+            var imageUrls = new List<string>();
             if (html.DocumentNode != null)
             {
                 try
                 {
-                    //Get title
-                    //mangaText += html.DocumentNode.SelectSingleNode("//h1[@class='tit']");
-
-                    //access token to be concatinated for image requests
-                    string accessToken = html.DocumentNode.SelectSingleNode("//meta[@property='og:image']").GetAttributeValue("content", "");
-                    accessToken = accessToken.Substring(accessToken.IndexOf("acc=") + 13);
-                    accessToken = "acc=" + accessToken;
-                    accessToken = accessToken.Replace("&amp;exp", "&exp");
-
-                    var imageListStartIndex = html.DocumentNode.InnerHtml.IndexOf("imgHttpLis = ") + "imgHttpLis = ".Length ;
-                    var imageListEndIndex = html.DocumentNode.InnerHtml.IndexOf("    const batoPass");
-                    String result = html.DocumentNode.InnerHtml.Substring(imageListStartIndex, imageListEndIndex - imageListStartIndex);
-                    result = result.Substring(1, result.Length - 2);
-                    result = result.Substring(0, result.Length - 2);
-
-                    string[] imageUrls = result.Split("\",\"");
-                    for(int i = 0; i < imageUrls.Length; ++i)
+                    var imageNode = html.DocumentNode.SelectSingleNode("//div[@id='centerDivVideo']");
+                    foreach (var node in imageNode.SelectNodes(".//img"))
                     {
-                        imageUrls[i] = imageUrls[i].Replace("\"", "");
-                        imageUrls[i] += $"?{accessToken}";
+                        imageUrls.Add(node.Attributes["src"].Value);
                     }
-
-
                 }
                 catch (Exception)
                 {
-                    return false;
+                    return new List<string>();
                 }
             }
-            else return false;
-            return true;
+            else return new List<string>();
+            return imageUrls;
         }
     }
 }

@@ -50,7 +50,7 @@ namespace WeebLib.Utility
         /// </summary>
         public class SearchType
         {
-            public SearchType(string name, string link, int latest, string source, string image = "")
+            public SearchType(string name, string link, double latest, string source, string image = "")
             {
                 this.name = name;
                 this.link = link;
@@ -60,7 +60,7 @@ namespace WeebLib.Utility
             }
             public string name { get; private set; }
             public string link { get; private set; }
-            public int latest { get; private set; }
+            public double latest { get; private set; }
             public string source { get; private set; }
             public string image { get; private set; }
         }
