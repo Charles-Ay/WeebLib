@@ -51,32 +51,48 @@ namespace WeebLib.Novel.Parser
                 SetWorkDir(dir);
             }
         }
-        
+
         protected override void SetWorkDir(string dir = "")
         {
             if(dir == "")
             {
                 dir = Directory.GetCurrentDirectory();
-                var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
-
-                foreach (var file in files)
-                {
-                    if (file.Contains("novels") || file.Contains("Novels"))
-                    {
-                        WorkDir = dir;
-                    }
-                }
                 if (string.IsNullOrEmpty(WorkDir))
                 {
                     string newdir = Path.Combine(dir, "Novels");
                     Directory.CreateDirectory(newdir);
                     WorkDir = dir;
+                    return;
                 }
             }
-            else
-            {
-                WorkDir = dir;
-            }
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            WorkDir = dir;
+            //var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
+            //bool hasFolder = false;
+
+            //if (!hasFolder)
+            //{
+            //    foreach (var file in files)
+            //    {
+            //        if (file.Contains("novels") || file.Contains("Novels"))
+            //        {
+            //            WorkDir = dir;
+            //        }
+            //    }
+            //}
+            //if (!hasFolder)
+            //{
+            //    Directory.CreateDirectory(dir + "\\Novels");
+            //    WorkDir = dir + "\\Novels";
+            //}
+
+            //if (string.IsNullOrEmpty(WorkDir))
+            //{
+            //    string newdir = Path.Combine(dir, "Novels");
+            //    Directory.CreateDirectory(newdir);
+            //    WorkDir = dir;
+            //}
         }
     }
 }

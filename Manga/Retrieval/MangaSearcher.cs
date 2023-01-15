@@ -26,7 +26,7 @@ namespace WeebLib.Manga.Retrieval
                 case "kissmanga":
                     return SearchKissManga(start, title);
                 default:
-                    return false;
+                    return SearchKissManga(start, title);
             }
         }
 
@@ -48,28 +48,37 @@ namespace WeebLib.Manga.Retrieval
                 List<string> name = new();
                 List<string> link = new();
                 List<string> sources = new();
+                List<string> images = new();
                 List<double> latest = new();
 
                 string nextPage = $"https://kissmanga.org/manga_list?page={pageNum}&action=search&q={srchqry}";
                 
                 int count = 0;
-                
-                foreach(HtmlNode node in html.DocumentNode.SelectNodes("//a[@class='item_movies_link']"))
+
+                foreach (HtmlNode node in html.DocumentNode.SelectNodes("//a[@class='item_movies_link']"))
                 {
                     var href = node.Attributes["href"].Value;
                     href = $"https://kissmanga.org{href}";
                     link.Add(href);
-                    
-                    var title = node.InnerText;
 
+                    //Get images
+                    var doc = Request(href);
+                    var outer = doc.DocumentNode.SelectNodes("//div[@class='barContent episodeList full']");
+                    var innerNode = outer[0];
+                    var imgDiv = innerNode.SelectSingleNode("//div[@class='a_center']");
+                    imgDiv = imgDiv.ChildNodes[1];
+                    images.Add($"https://kissmanga.org{imgDiv.Attributes["src"].Value}");
+
+                    var title = node.InnerText;
+                    
                     var chapter = GetKissMangaLatestChapter(href);
                     if (chapter != "0" && chapter != "")
                     {
                         latest.Add(double.Parse(chapter));
                         link.Add(href);
+                        title = title.Replace("&#39;", "'");
                         name.Add(title);
                         sources.Add(MangaUtil.sourceToStringWithCasing(MangaUtil.MangaSources.KissManga));
-
 
                         ++numberOfResults;
                     }
@@ -77,7 +86,7 @@ namespace WeebLib.Manga.Retrieval
                 
                 for (int i = 0; i < numberOfResults; ++i)
                 {
-                    results.Add(new SearchType(name[i], link[i], latest[i], sources[i]));
+                    results.Add(new SearchType(name[i], link[i], latest[i], sources[i], images[i]));
                 }
             }
             else
@@ -114,6 +123,7 @@ namespace WeebLib.Manga.Retrieval
                     var chapterNumber = href;
                     var temp = chapterNumber;
                     chapterNumber = Regex.Match(chapterNumber, @"\d*\.\d+|\d+\.\d*|\d+(?=\D*$)").Value;
+                    
                     if (double.Parse(chapterNumber) <= targetChapter)
                     {
                         mangas.Add(new MangaData(manga.name, targetChapter, double.Parse(chapterNumber), href, manga.source));

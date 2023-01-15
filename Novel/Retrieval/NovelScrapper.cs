@@ -21,10 +21,6 @@ namespace WeebLib.Novel.Retrieval
         {
             bool returnedValue = false;
 
-            //Check if the "Novels" Dir exist. If not make a new one
-            if (!Directory.Exists(Path.Combine(dir, "Novels"))) Directory.CreateDirectory(Path.Combine(dir, "Novels"));
-            dir = Path.Combine(dir, "Novels");
-
             foreach (NovelData novel in data)
             {
                 NovelSourceParser sourceParser = new NovelSourceParser();

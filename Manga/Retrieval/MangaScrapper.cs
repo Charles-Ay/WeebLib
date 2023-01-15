@@ -41,21 +41,7 @@ namespace WeebLib.Manga.Retrieval
         public override string Scrape(List<MangaData> data, string dir, bool outputToFile = true)
         {
             List<string> images = new List<string>();
-
-            //Check if the "Manga" Dir exist. If not make a new one
-            if (!Directory.Exists(Path.Combine(dir, "Manga"))) Directory.CreateDirectory(Path.Combine(dir, "Manga"));
-            var mangaDir = Path.Combine(dir, "Manga");
-            
-            //BackgroundWorker worker = new BackgroundWorker();
-            //worker.DoWork += (sender, e) =>
-            //{
-            //    int imgNumber = 1;
-            //    foreach (string image in images)
-            //    {
-            //        DownloadImage(image, dir, manga, imgNumber);
-            //        ++imgNumber;
-            //    }
-            //};
+            var mangaDir = dir;
 
             //worker.RunWorkerAsync();
             foreach (MangaData manga in data)

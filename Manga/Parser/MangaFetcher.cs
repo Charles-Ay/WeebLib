@@ -29,24 +29,62 @@ namespace WeebLib.Manga.Parser
             return Fetch(new MangaData(searchResults.name, amount, searchResults.latest, searchResults.link, searchResults.source), first, outputToFile);
         }
 
+        public void SetWorkDir(string dir, bool create)
+        {
+            if (create)
+            {
+                SetWorkDir();
+            }
+            else
+            {
+                SetWorkDir(dir);
+            }
+        }
+
         protected override void SetWorkDir(string dir = "")
         {
-            dir = Directory.GetCurrentDirectory();
-            var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
-
-            foreach (var file in files)
+            if (dir == "")
             {
-                if (file.Contains("mangas") || file.Contains("Mangas"))
+                dir = Directory.GetCurrentDirectory();
+                if (string.IsNullOrEmpty(WorkDir))
                 {
+                    string newdir = Path.Combine(dir, "Manga");
+                    Directory.CreateDirectory(newdir);
                     WorkDir = dir;
+                    return;
                 }
             }
-            if (string.IsNullOrEmpty(WorkDir))
-            {
-                string newdir = Path.Combine(dir, "Mangas");
-                Directory.CreateDirectory(newdir);
-                WorkDir = dir;
-            }
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            WorkDir = dir;
+
+            //var files = Directory.GetDirectories(dir, "*", SearchOption.TopDirectoryOnly);
+            //bool hasFolder = false;
+
+            //if (!hasFolder)
+            //{
+            //    foreach (var file in files)
+            //    {
+            //        if (file.Contains("mangas") || file.Contains("Mangas"))
+            //        {
+            //            WorkDir = dir;
+            //            hasFolder = true;
+            //        }
+            //    }
+            //}
+            //if (!hasFolder)
+            //{
+            //    Directory.CreateDirectory(dir + "\\Mangas");
+            //    WorkDir = dir + "\\Mangas";
+            //}
+
+            //if (string.IsNullOrEmpty(WorkDir))
+            //{
+            //    string newdir = Path.Combine(dir, "Mangas");
+            //    Directory.CreateDirectory(newdir);
+            //    WorkDir = dir;
+            //}
         }
     }
 }

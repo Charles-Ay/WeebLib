@@ -21,7 +21,7 @@ namespace WeebLib.Interfaces
         /// Set the current working directory
         /// </summary>
         protected abstract void SetWorkDir(string dir = "");
-        internal string GetWorkDir()
+        public string GetWorkDir()
         {
             return string.IsNullOrEmpty(WorkDir) ? throw new NullReferenceException("WorkDir is null") : WorkDir;
         }
