@@ -8,7 +8,11 @@ namespace WeebLib.Interfaces
 {
     public abstract class IWebFetcher<T>
     {
+        /// <summary>
+        /// The working directory
+        /// </summary>
         protected string WorkDir = "";
+        
         /// <summary>
         /// Fetches content from web
         /// </summary>
@@ -17,10 +21,17 @@ namespace WeebLib.Interfaces
         /// <param name="outputToFile">Output results to file</param>
         /// <returns>text if output to file is false</returns>
         protected abstract string Fetch(T data, int start, bool outputToFile = true);
+        
         /// <summary>
         /// Set the current working directory
         /// </summary>
         protected abstract void SetWorkDir(string dir = "");
+
+        /// <summary>
+        /// Get the current working directory
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
         public string GetWorkDir()
         {
             return string.IsNullOrEmpty(WorkDir) ? throw new NullReferenceException("WorkDir is null") : WorkDir;

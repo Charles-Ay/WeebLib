@@ -15,7 +15,7 @@ namespace WeebLib.WeeLibExceptions
         
         private static string ContentEdit(string message, ContentType content)
         {
-            return $"{message} : unable to retrive {content.ToString()}";
+            return $"{message} : unable to retrive {content}";
         }
     }
 }

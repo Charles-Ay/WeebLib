@@ -16,6 +16,7 @@ using System.ComponentModel;
 
 namespace WeebLib.Manga.Retrieval
 {
+    //TODO: Add more sources
     public class MangaSearcher : ISearcher
     {
         int numberOfResults;
@@ -30,21 +31,24 @@ namespace WeebLib.Manga.Retrieval
             }
         }
 
+        //TODO: Implement next page for kissmanga
         /// <summary>
         /// Searches for a manga on KissManga
         /// </summary>
         /// <param name="startChapter"></param>
-        /// <param name="novelname"></param>
+        /// <param name="mangaName"></param>
         /// <returns>True if content was retrived successfully</returns>
-        private bool SearchKissManga(int startChapter, string novelname)
+        private bool SearchKissManga(int startChapter, string mangaName)
         {
-            string srchqry = novelname.Replace(" ", "+");
+            string srchqry = mangaName.Replace(" ", "+");
+            //base url
             string url = $"https://kissmanga.org/manga_list?page=1&action=search&q={srchqry}";
             int pageNum = 1;
 
             var html = Request(url);
             if (html.DocumentNode != null)
             {
+                //lists to use in search
                 List<string> name = new();
                 List<string> link = new();
                 List<string> sources = new();
@@ -52,9 +56,8 @@ namespace WeebLib.Manga.Retrieval
                 List<double> latest = new();
 
                 string nextPage = $"https://kissmanga.org/manga_list?page={pageNum}&action=search&q={srchqry}";
-                
-                int count = 0;
 
+                //get the manga page links
                 foreach (HtmlNode node in html.DocumentNode.SelectNodes("//a[@class='item_movies_link']"))
                 {
                     var href = node.Attributes["href"].Value;
@@ -96,6 +99,11 @@ namespace WeebLib.Manga.Retrieval
             return true;
         }
 
+        /// <summary>
+        /// Gets the latest chapter of a manga on KissManga
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         private string GetKissMangaLatestChapter(string url)
         {
             var html = Request(url);
@@ -107,14 +115,22 @@ namespace WeebLib.Manga.Retrieval
             return latest;
         }
 
+        /// <summary>
+        /// Get KissManga Chapters
+        /// </summary>
+        /// <param name="manga">The manga to get chapters for</param>
+        /// <param name="targetChapter"></param>
+        /// <returns>the chapters of the manga</returns>
         internal List<MangaData> QueryKissMangaAndGetChapters(ref MangaData manga, int targetChapter)
         {
             List<MangaData> mangas = new();
             var html = Request(manga.initalLink);
 
+            //get the chapters list
             var outer = html.DocumentNode.SelectNodes("//div[@class='barContent episodeList full']");
             foreach (HtmlNode node in outer)
             {
+                //get indvidual chapter elements
                 foreach (HtmlNode chapter in node.SelectNodes(".//h3"))
                 {
                     var a = chapter.SelectSingleNode(".//a");
@@ -122,6 +138,8 @@ namespace WeebLib.Manga.Retrieval
                     href = $"https://kissmanga.org{href}";
                     var chapterNumber = href;
                     var temp = chapterNumber;
+
+                    //only get last float (ie if chapter is something like "2 boys chapter 17.5" we only get the .5)
                     chapterNumber = Regex.Match(chapterNumber, @"\d*\.\d+|\d+\.\d*|\d+(?=\D*$)").Value;
                     
                     if (double.Parse(chapterNumber) <= targetChapter)

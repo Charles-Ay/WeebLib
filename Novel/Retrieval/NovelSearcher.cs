@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,9 +14,6 @@ using static WeebLib.Utility.WeebLibUtil;
 
 namespace WeebLib.Novel.Retrieval
 {
-    //TODO: CREATE FULL SEARCH(ALL SOURCES)
-    //TODO: ADD FREEWEBNOVEL IMAGES
-    //TODO: SET FREE AS DEFAULT SOURCE
     public class NovelSearcher : ISearcher
     {
         /// <summary>
@@ -36,16 +34,23 @@ namespace WeebLib.Novel.Retrieval
                 case "":
                     return SearchAll(start, title);
                 default:
-                    return false;
+                    return SearchAll(start, title);
             }
         }
 
+        /// <summary>
+        /// Searches all sources for a novel
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="title"></param>
+        /// <returns></returns>
         private bool SearchAll(int start, string title)
         {
-            bool searchFree = SearchFreeWebNovel(start, title);
-            bool searchFull = SearchFullNovel(start, title);
-            if (searchFull || searchFree) return true;
-            return false;
+            return SearchFreeWebNovel(start, title);
+            //TODO: Uncomment when fullnovel is fixed
+            //bool searchFull = SearchFullNovel(start, title);
+            //if (searchFull || searchFree) return true;
+            //return false;
         }
 
         /// <summary>
@@ -57,21 +62,23 @@ namespace WeebLib.Novel.Retrieval
         private bool SearchFreeWebNovel(int startChapter, string novelname)
         {
             numberOfResults = 0;
+            //base url
             var url = "https://freewebnovel.com/search/";
 
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
             httpRequest.Method = "POST";
+            
             //mimck chrome
             httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
 
+            //make a http ajax request to website to use novel in search
             httpRequest.ContentType = "application/x-www-form-urlencoded";
-
             var data = $"searchkey={novelname}";
-
             using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
             {
+                //write the data to the request stream so we can request the search
                 streamWriter.Write(data);
             }
 
@@ -92,6 +99,7 @@ namespace WeebLib.Novel.Retrieval
 
             if (html.DocumentNode != null)
             {
+                //Lists to hold the search query data
                 List<string> name = new List<string>();
                 List<string> link = new List<string>();
                 List<string> image = new List<string>();
@@ -110,6 +118,7 @@ namespace WeebLib.Novel.Retrieval
 
                 try
                 {
+                    //Ge the latest chapter of each novel
                     var latestChapters = html.DocumentNode.SelectNodes("//span[@class='s1']");
                     foreach (var chap in latestChapters)
                     {
@@ -122,7 +131,8 @@ namespace WeebLib.Novel.Retrieval
                     return false;
                 }
 
-                
+
+                //Get the cover images of each novel
                 foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='pic']"))
                 {
                     var childNode = node.ChildNodes[1];
@@ -130,6 +140,7 @@ namespace WeebLib.Novel.Retrieval
                     image.Add(imgLink);
                 }
 
+                //Get the name of each novel and the link to the novel
                 foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='tit']"))
                 {
                     if (node.InnerText != " Genres" && node.InnerText != " Search Tips")
@@ -151,26 +162,30 @@ namespace WeebLib.Novel.Retrieval
                                 throw new LinkException("Error extracting link from FreeWebNovel");
                             }
                         }
+
+                        //Add the source
                         string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.FreeWebNovel);
                         sources.Add(output);
                     }
                 }
                 for (int i = 0; i < numberOfResults; ++i)
                 {
+                    //Add the novel to the list if it is not already there
                     SearchType se = new SearchType(name[i], link[i], latest[i], sources[i], image[i]);
                     bool had = results.Any(s => se.name == s.name);
-                    if(!had) results.Add(se);
+                    if (!had) results.Add(se);
                 }
             }
             else
             {
-                //ask for new input
+                return true;
             }
             return true;
         }
 
+        //TODO: Improve search
         /// <summary>
-        /// Searches for a novel on FullNove
+        /// Searches for a novel on FullNovel. This search and is not as accurate as FreeWebNovel
         /// </summary>
         /// <param name="startChapter"></param>
         /// <param name="novelname"></param>
@@ -179,11 +194,13 @@ namespace WeebLib.Novel.Retrieval
         {
             numberOfResults = 0;
             string srchqry = novelname.Replace(" ", "+");
+            //base url
             string url = $"https://full-novel.com/search?keyword={srchqry}";
 
             var html = Request(url);
             if (html.DocumentNode != null)
             {
+                //Lists to hold the search query data
                 List<string> name = new List<string>();
                 List<string> link = new List<string>();
                 List<string> image = new List<string>();
@@ -194,6 +211,7 @@ namespace WeebLib.Novel.Retrieval
                 //Get next page
                 if (html.DocumentNode.SelectSingleNode("//li[@class='next ']")!= null)
                 {
+                    //Get the link to the next page
                     var nextPageNode = html.DocumentNode.SelectSingleNode("//li[@class='next ']").SelectSingleNode("a");
                     nextPage = nextPageNode.GetAttributeValue("href", string.Empty);
                 }
@@ -202,10 +220,9 @@ namespace WeebLib.Novel.Retrieval
                     nextPage = "WILL BE DEAD";
                 }
 
-
                 while (nextPage != "DEAD")
                 {
-                    int x = 0;
+                    //Get the latest chapter of each novel
                     var latestChapters = html.DocumentNode.SelectNodes("//span[@class='chr-text']");
                     try
                     {
@@ -216,13 +233,12 @@ namespace WeebLib.Novel.Retrieval
                             {
                                 latest.Add(int.Parse(chapTxt));
                             }
+                            //If the inner text doesn't contain a number, it instead uses the outer HTML of the parent node to extract the number.
                             else
                             {
                                 chapTxt = Regex.Match(chap.ParentNode.OuterHtml, @"\d+").Value;
                                 latest.Add(int.Parse(chapTxt));
                             }
-                            latest.Add(int.Parse(chapTxt));
-                            ++x;
                         }
                     }
                     catch (NullReferenceException)
@@ -306,6 +322,7 @@ namespace WeebLib.Novel.Retrieval
         /// <param name="startChapter"></param>
         /// <param name="novelname"></param>
         /// <returns>True if content was retrived successfully</returns>
+        [Obsolete("NovelTrench is no longer supported")]
         private bool SearchNovelTrench(int startChapter, string novelname)
         {
             string srchqry = novelname.Replace(" ", "+");
@@ -379,6 +396,13 @@ namespace WeebLib.Novel.Retrieval
             return true;
         }
 
+        //TODO: Fix this when fixing fullnovel
+        /// <summary>
+        /// Searches for a novel on NovelFull
+        /// </summary>
+        /// <param name="novel"></param>
+        /// <param name="first">first chapter to search for</param>
+        /// <returns></returns>
         internal List<NovelData> QueryFullNovelAndGetChapters(ref NovelData novel, int first)
         {
             List<NovelData> novels = new List<NovelData>();
@@ -400,26 +424,37 @@ namespace WeebLib.Novel.Retrieval
             html.LoadHtml(results);
 
             int nextNum = 0;
+            //used to keep track of the number of missing chapters in the novel.
+            int gap = 2;
             foreach (HtmlNode node in html.DocumentNode.SelectNodes("//span[@class='nchr-text']"))
             {
-
                 var parent = node.ParentNode;
                 var link = parent.GetAttributeValue("href", string.Empty);
                 int num = int.Parse(Regex.Match(node.InnerHtml, @"\d+").Value);
+
                 //Hack: sometimes a chapter is missing
+                //If the next chapter number is greater than the previous chapter number, it means that there is a missing chapter.
                 if (nextNum > 0 && num > nextNum)
                 {
-                    novels.Add(new NovelData(novel.name, nextNum, novel.latestChapter, link, novel.source));
+                    //Just use the text from the previous chapter
+                    while(nextNum != num)
+                    {
+                        novels.Add(new NovelData(novel.name, nextNum, novel.latestChapter, link, novel.source));
+                        ++nextNum;
+                    }
+                    ++gap;
                 }
 
-                if (novels.Count == 0 || link != novels[num - 2].initalLink ||  num <= novel.latestChapter)
+                //checks if the novels list is empty or if the link of the current chapter is not the same
+                //as the previous chapter's link in the novels list by using the gap variable
+                if (novels.Count == 0 ||  num <= novel.latestChapter)
                 {
                     if (num >= first && num <= novel.totalChapters)
                     {
                         novels.Add(new NovelData(novel.name, num, novel.latestChapter,link, novel.source));
                     }
                 }
-                else break;
+                if(num >= novel.latestChapter) break;
                 nextNum = num + 1;
             }
             return novels;
@@ -431,7 +466,7 @@ namespace WeebLib.Novel.Retrieval
         /// <param name="novel"></param>
         /// <param name="first"></param>
         /// <returns></returns>
-        internal List<NovelData> GetNovelChapters(ref NovelData novel, int first)
+        internal List<NovelData> QueryFreeWebNovelAndGetChapters(ref NovelData novel, int first)
         {
             List<NovelData> novels = new List<NovelData>();
             //HACK: FOR WHEN SOMEONE WANTS TO DOWNLOAD A SINGLE CHAPTER OTHER THAN FIRST
@@ -446,7 +481,6 @@ namespace WeebLib.Novel.Retrieval
                 if(novels.Count <= 1 || curchapter != novels[i -2].initalLink || i <= novel.latestChapter)
                 {
                     //replace remaing last digit
-                    //TODO: CHECK FOR POSSIBLE CHAPTER INDEX -1 LOGIC ERROR
                     curchapter = Regex.Replace(curchapter, "[0-9]", $"{i}");
 
                     novels.Add(new NovelData(novel.name, i, novel.latestChapter, curchapter, novel.source));

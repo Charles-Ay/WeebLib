@@ -33,6 +33,12 @@ namespace WeebLib.Novel.Parser
             }
         }
 
+        /// <summary>
+        /// Parses the source of a novel from freewebnovel.com
+        /// </summary>
+        /// <param name="html"></param>
+        /// <param name="novelText">The text of the novel</param>
+        /// <returns></returns>
         private static bool FreeWebNovelParse(HtmlDocument html, out string novelText)
         {
             novelText = "";
@@ -43,6 +49,7 @@ namespace WeebLib.Novel.Parser
                     //Get title
                     novelText += html.DocumentNode.SelectSingleNode("//h1[@class='tit']").InnerText + "\n";
 
+                    //Parse each paragraph
                     foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='txt ']"))
                     {
                         novelText += node.InnerText;
@@ -57,6 +64,12 @@ namespace WeebLib.Novel.Parser
             return true;
         }
 
+        /// <summary>
+        /// Parses the source of a novel from full-novel.com
+        /// </summary>
+        /// <param name="html"></param>
+        /// <param name="novelText">The text of the novel</param>
+        /// <returns></returns>
         private static bool FullNovelParse(HtmlDocument html, out string novelText)
         {
             novelText = "";
@@ -64,9 +77,14 @@ namespace WeebLib.Novel.Parser
             {
                 try
                 {
+                    //Get the main content
                     HtmlNode contentNode = html.DocumentNode.SelectSingleNode("//div[@id='chr-content']");
+
+                    //Get title
                     novelText = HttpUtility.HtmlDecode(contentNode.SelectSingleNode("//a[@class='novel-title']").InnerText);
                     novelText += "\n";
+
+                    //Parse each paragraph
                     foreach (HtmlNode node in contentNode.SelectNodes("//p"))
                     {
                         novelText += HttpUtility.HtmlDecode(node.InnerText);
@@ -82,6 +100,7 @@ namespace WeebLib.Novel.Parser
             return true;
         }
 
+        [Obsolete("NovelTrenchParse is obsolete, FullNovelParse or FreeWebNovelParse instead")]
         private static bool NovelTrenchParse(HtmlDocument html, out string novelText)
         {
             novelText = "";
