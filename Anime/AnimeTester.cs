@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 
 namespace WeebLib.Anime
 {
+    //TODO: Get anime working
+    //TODO: Find a way to get the anime data from a anime page
     public class AnimeTester
     {
         string link;

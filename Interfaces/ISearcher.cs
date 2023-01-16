@@ -28,7 +28,12 @@ namespace WeebLib.Interfaces
         /// <returns>True if the object was found</returns>
         public abstract bool Search(int start, string title, string source = "");
 
-
+        /// <summary>
+        /// Mock a chrome browser with selenium
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        [Obsolete("MockWithChrome should typically not be used due to slow speed.")]
         private HtmlDocument MockWithChrome(string url) {
             //create object of chrome options
             ChromeOptions options = new ChromeOptions();
@@ -53,19 +58,23 @@ namespace WeebLib.Interfaces
                 //return the HtmlDocument
                 return doc;
             }
-        //    var driver = new ChromeDriver(options);
-        //    driver.Navigate().GoToUrl(url);
-        //    var doc = new HtmlDocument();
-        //    doc.LoadHtml(driver.PageSource);
-        //    driver.Quit();
-        //    return doc;
         }
+
+        /// <summary>
+        /// Gets the html document from the url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="mockBrowser"></param>
+        /// <returns></returns>
         protected HtmlDocument Request(string url, bool mockBrowser = false)
         {
             if (mockBrowser) return MockWithChrome(url);
+            
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
+
+            //Make the request look like a browser
             httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
             
             HtmlAgilityPack.HtmlDocument html = new HtmlDocument();
@@ -86,12 +95,20 @@ namespace WeebLib.Interfaces
             return html;
         }
 
+        /// <summary>
+        /// Get the search results
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="SearchException"></exception>
         public List<SearchType> Results()
         {
             if (results.Count > 0) return results;
             else throw new SearchException("No results found");
         }
 
+        /// <summary>
+        /// Clear the search results
+        /// </summary>
         protected void Clear()
         {
             results.Clear();

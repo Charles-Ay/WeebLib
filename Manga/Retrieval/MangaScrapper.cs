@@ -15,8 +15,13 @@ namespace WeebLib.Manga.Retrieval
 {
     internal class MangaScrapper : IWebScrapper<MangaData>
     {
-        protected string? mangaText;
-
+        /// <summary>
+        /// Downloads the manga from the website
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="dir"></param>
+        /// <param name="manga"></param>
+        /// <param name="imgNumber">image number use for indexing</param>
         private void DownloadImage(string image, string dir, MangaData manga, int imgNumber)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(image);
@@ -43,7 +48,6 @@ namespace WeebLib.Manga.Retrieval
             List<string> images = new List<string>();
             var mangaDir = dir;
 
-            //worker.RunWorkerAsync();
             foreach (MangaData manga in data)
             {
                 //Check if the "Manga" Dir exist. If not make a new one

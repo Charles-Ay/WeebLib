@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace WeebLib
 {
+    //TODO: Use logger more for error tracking
     internal class Logger
     {
         private static string LogDir = Path.Combine(Directory.GetCurrentDirectory(), $@"Logs");

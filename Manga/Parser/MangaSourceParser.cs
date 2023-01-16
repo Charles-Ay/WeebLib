@@ -14,12 +14,12 @@ namespace WeebLib.Manga.Parser
     internal class MangaSourceParser 
     {
         /// <summary>
-        /// Parses the source of a novel
+        /// Parses the source of a manga
         /// </summary>
         /// <param name="source"></param>
         /// <param name="html"></param>
         /// <param name="mangaText"></param>
-        /// <returns>returns true if novel was sucessfully parsed</returns>
+        /// <returns>returns true if manga was sucessfully parsed</returns>
         internal static List<string> Parse(MangaUtil.MangaSources source, HtmlDocument html)
         {
             switch (source)
@@ -31,6 +31,11 @@ namespace WeebLib.Manga.Parser
             }
         }
         
+        /// <summary>
+        /// Parse kissmanga data
+        /// </summary>
+        /// <param name="html"></param>
+        /// <returns>List of image urls for a chapter</returns>
         private static List<string> KissMangaParse(HtmlDocument html)
         {
             var imageUrls = new List<string>();
