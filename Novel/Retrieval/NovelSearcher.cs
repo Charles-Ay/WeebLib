@@ -120,10 +120,15 @@ namespace WeebLib.Novel.Retrieval
                 {
                     //Ge the latest chapter of each novel
                     var latestChapters = html.DocumentNode.SelectNodes("//span[@class='s1']");
-                    foreach (var chap in latestChapters)
+                    if (latestChapters != null)
                     {
-                        string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
-                        latest.Add(int.Parse(chapTxt));
+
+
+                        foreach (var chap in latestChapters)
+                        {
+                            string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
+                            latest.Add(int.Parse(chapTxt));
+                        }
                     }
                 }
                 catch (NullReferenceException)

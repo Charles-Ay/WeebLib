@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools;
-using OpenQA.Selenium.DevTools.V106.DOM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
