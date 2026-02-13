@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,6 +12,8 @@ using System.Threading.Tasks;
 using WeebLib.Interfaces;
 using WeebLib.Novel.NovelExceptions;
 using static WeebLib.Utility.WeebLibUtil;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace WeebLib.Novel.Retrieval
 {
@@ -62,121 +65,125 @@ namespace WeebLib.Novel.Retrieval
         private bool SearchFreeWebNovel(int startChapter, string novelname)
         {
             numberOfResults = 0;
-            //base url
             var url = "https://freewebnovel.com/search/";
-
-#pragma warning disable SYSLIB0014 // Type or member is obsolete
-            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-#pragma warning restore SYSLIB0014 // Type or member is obsolete
-            httpRequest.Method = "POST";
-            
-            //mimck chrome
-            httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
-
-            //make a http ajax request to website to use novel in search
-            httpRequest.ContentType = "application/x-www-form-urlencoded";
-            var data = $"searchkey={novelname}";
-            using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
-            {
-                //write the data to the request stream so we can request the search
-                streamWriter.Write(data);
-            }
 
             HtmlDocument html = new HtmlDocument();
             html.OptionFixNestedTags = true;
 
-            var response = httpRequest.GetResponse();
-            if (((HttpWebResponse)response).StatusCode == HttpStatusCode.OK)
+            // Create a cookie container to maintain cookies between requests
+            var cookieContainer = new CookieContainer();
+            var handler = new HttpClientHandler
             {
-                using (Stream dataStream = response.GetResponseStream())
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+                CookieContainer = cookieContainer,
+                UseCookies = true
+            };
+
+            using (var client = new HttpClient(handler))
+            {
+                // Step 1: Visit the search page first to get cookies/cf_clearance
+                var initialRequest = new HttpRequestMessage(HttpMethod.Get, "https://freewebnovel.com/search");
+                initialRequest.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36");
+                var initialResponse = client.SendAsync(initialRequest).GetAwaiter().GetResult();
+                initialResponse.EnsureSuccessStatusCode();
+
+                // Now make the actual search request with cookies
+                var searchRequest = new HttpRequestMessage(HttpMethod.Post, url);
+
+                // Add all the headers the browser sends
+                searchRequest.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36");
+                searchRequest.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+                searchRequest.Headers.Add("Accept-Language", "en-US,en;q=0.9");
+                searchRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+                searchRequest.Headers.Add("Cache-Control", "max-age=0");
+                searchRequest.Headers.Add("Origin", "https://freewebnovel.com");
+                searchRequest.Headers.Add("Referer", "https://freewebnovel.com/search");
+                searchRequest.Headers.Add("Sec-Fetch-Dest", "document");
+                searchRequest.Headers.Add("Sec-Fetch-Mode", "navigate");
+                searchRequest.Headers.Add("Sec-Fetch-Site", "same-origin");
+                searchRequest.Headers.Add("Sec-Fetch-User", "?1");
+                searchRequest.Headers.Add("Upgrade-Insecure-Requests", "1");
+                searchRequest.Headers.Add("sec-ch-ua", "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"");
+                searchRequest.Headers.Add("sec-ch-ua-mobile", "?0");
+                searchRequest.Headers.Add("sec-ch-ua-platform", "\"Windows\"");
+
+                var payload = new FormUrlEncodedContent(new[]
                 {
-                    // Open the stream using a StreamReader for easy access.
-                    StreamReader reader = new StreamReader(dataStream);
-                    // Read the content.
-                    html.LoadHtml(reader.ReadToEnd());
+                    new KeyValuePair<string, string>("searchkey", novelname)
+                });
+                searchRequest.Content = payload;
+
+                var response = client.SendAsync(searchRequest).GetAwaiter().GetResult();
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    html.LoadHtml(body);
                 }
+            }
+
+            if (ShouldRetryWithSelenium(html, novelname))
+            {
+                html = RequestFreeWebNovelSearchWithSelenium(url, novelname);
             }
 
             if (html.DocumentNode != null)
             {
-                //Lists to hold the search query data
-                List<string> name = new List<string>();
-                List<string> link = new List<string>();
-                List<string> image = new List<string>();
-                List<string> sources = new List<string>();
-                List<int> latest = new List<int>();
-
-                //get total amount of results
+                //Get total amount of results (fallback to actual result count)
                 try
                 {
-                    numberOfResults = int.Parse(html.DocumentNode.SelectSingleNode("//em[@class='num']").InnerText);
+                    var numNode = html.DocumentNode.SelectSingleNode("//em[@class='num']");
+                    if (numNode != null)
+                    {
+                        string numTxt = Regex.Match(numNode.InnerText, @"\d+").Value;
+                        if (!string.IsNullOrWhiteSpace(numTxt)) numberOfResults = int.Parse(numTxt);
+                    }
                 }
-                catch (NullReferenceException)
+                catch (Exception)
                 {
                     throw new SearchException("Search query must be at least 3 characters long");
                 }
 
-                try
+                var resultNodes = html.DocumentNode.SelectNodes("//div[contains(@class,'ul-list1')]//div[contains(@class,'li-row')]");
+                if (resultNodes == null) return true;
+
+                if (numberOfResults == 0) numberOfResults = resultNodes.Count;
+
+                foreach (var node in resultNodes)
                 {
-                    //Ge the latest chapter of each novel
-                    var latestChapters = html.DocumentNode.SelectNodes("//span[@class='s1']");
-                    if (latestChapters != null)
+                    var titleNode = node.SelectSingleNode(".//h3[contains(@class,'tit')]/a");
+                    if (titleNode == null) continue;
+
+                    string novelName = HtmlEntity.DeEntitize(titleNode.InnerText).Trim();
+                    if (string.IsNullOrWhiteSpace(novelName)) continue;
+
+                    string novelHref = titleNode.GetAttributeValue("href", string.Empty);
+                    if (string.IsNullOrWhiteSpace(novelHref)) continue;
+
+                    string novelUrl = novelHref.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                        ? novelHref
+                        : $"https://freewebnovel.com{(novelHref.StartsWith("/") ? "" : "/")}{novelHref}";
+
+                    string startLink = $"{novelUrl}/chapter-{startChapter}";
+
+                    var latestNode = node.SelectSingleNode(".//a[contains(@class,'chapter')]//span[contains(@class,'s1')]")
+                        ?? node.SelectSingleNode(".//span[contains(@class,'s1')]");
+                    int latestChapter = 0;
+                    if (latestNode != null)
                     {
-
-
-                        foreach (var chap in latestChapters)
-                        {
-                            string chapTxt = Regex.Match(chap.InnerText, @"\d+").Value;
-                            latest.Add(int.Parse(chapTxt));
-                        }
+                        string chapTxt = Regex.Match(latestNode.InnerText, @"\d+").Value;
+                        if (!string.IsNullOrWhiteSpace(chapTxt)) latestChapter = int.Parse(chapTxt);
                     }
-                }
-                catch (NullReferenceException)
-                {
-                    return false;
-                }
 
-
-                //Get the cover images of each novel
-                foreach (HtmlNode node in html.DocumentNode.SelectNodes("//div[@class='pic']"))
-                {
-                    var childNode = node.ChildNodes[1];
-                    var imgLink = childNode.SelectSingleNode("img").Attributes[0].Value;
-                    image.Add(imgLink);
-                }
-
-                //Get the name of each novel and the link to the novel
-                foreach (HtmlNode node in html.DocumentNode.SelectNodes("//h3[@class='tit']"))
-                {
-                    if (node.InnerText != " Genres" && node.InnerText != " Search Tips")
+                    var imgNode = node.SelectSingleNode(".//div[contains(@class,'pic')]//img");
+                    string imgLink = imgNode?.GetAttributeValue("src", string.Empty) ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(imgLink) && !imgLink.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                     {
-                        name.Add(node.InnerText);
-                        var newNodes = node.SelectNodes("a");
-                        foreach (var innerNode in newNodes)
-                        {
-                            string tmp = innerNode.GetAttributeValue("href", string.Empty);
-                            if (tmp != string.Empty)
-                            {
-                                tmp = tmp.Replace(".html", "");
-                                tmp = tmp.Remove(0, 1);
-                                tmp = $"https://freewebnovel.com/{tmp}/chapter-{startChapter}.html";
-                                link.Add(tmp);
-                            }
-                            else
-                            {
-                                throw new LinkException("Error extracting link from FreeWebNovel");
-                            }
-                        }
-
-                        //Add the source
-                        string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.FreeWebNovel);
-                        sources.Add(output);
+                        imgLink = $"https://freewebnovel.com{(imgLink.StartsWith("/") ? "" : "/")}{imgLink}";
                     }
-                }
-                for (int i = 0; i < numberOfResults; ++i)
-                {
-                    //Add the novel to the list if it is not already there
-                    SearchType se = new SearchType(name[i], link[i], latest[i], sources[i], image[i]);
+
+                    string output = NovelUtil.sourceToStringWithCasing(NovelUtil.NovelSources.FreeWebNovel);
+
+                    SearchType se = new SearchType(novelName, startLink, latestChapter, output, imgLink);
                     bool had = results.Any(s => se.name == s.name);
                     if (!had) results.Add(se);
                 }
@@ -186,6 +193,80 @@ namespace WeebLib.Novel.Retrieval
                 return true;
             }
             return true;
+        }
+
+        private bool ShouldRetryWithSelenium(HtmlDocument html, string novelname)
+        {
+            if (html?.DocumentNode == null) return true;
+
+            var titleNode = html.DocumentNode.SelectSingleNode("//title");
+            if (titleNode != null)
+            {
+                var title = HtmlEntity.DeEntitize(titleNode.InnerText).Trim();
+                if (title.Contains("You searched for", StringComparison.OrdinalIgnoreCase) &&
+                    !title.Contains(novelname, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            var numNode = html.DocumentNode.SelectSingleNode("//em[@class='num']");
+            if (numNode != null)
+            {
+                string numTxt = Regex.Match(numNode.InnerText, @"\d+").Value;
+                if (numTxt == "0") return true;
+            }
+
+            var resultNodes = html.DocumentNode.SelectNodes("//div[contains(@class,'ul-list1')]//div[contains(@class,'li-row')]");
+            return resultNodes == null || resultNodes.Count == 0;
+        }
+
+        private HtmlDocument RequestFreeWebNovelSearchWithSelenium(string url, string novelname)
+        {
+            var html = new HtmlDocument();
+            html.OptionFixNestedTags = true;
+
+            var options = new ChromeOptions();
+            options.AddArgument("headless=new");
+            options.AddArgument("--disable-gpu");
+            options.AddArgument("--no-sandbox");
+
+            using (var driver = new ChromeDriver(options))
+            {
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
+                driver.Navigate().GoToUrl(url);
+
+                IWebElement input = null;
+                var inputs = driver.FindElements(By.Name("searchkey"));
+                foreach (var el in inputs)
+                {
+                    if (el.Displayed && el.Enabled)
+                    {
+                        input = el;
+                        break;
+                    }
+                }
+                if (input == null)
+                {
+                    input = driver.FindElement(By.Id("searchkey"));
+                }
+
+                var js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript("arguments[0].value = arguments[1];", input, novelname);
+
+                // Submit the desktop or mobile search form via JS to avoid non-interactable errors
+                js.ExecuteScript(@"
+                    var f = document.getElementById('form') || document.getElementById('m_form');
+                    if (f) f.submit();
+                ");
+
+                System.Threading.Thread.Sleep(1000);
+
+                var pageSource = driver.PageSource;
+                html.LoadHtml(pageSource);
+            }
+
+            return html;
         }
 
         //TODO: Improve search
@@ -417,7 +498,7 @@ namespace WeebLib.Novel.Retrieval
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
             httpRequest.Method = "GET";
             //mimick chrome
-            httpRequest.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36";
+
 
             var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
             string results = string.Empty;
