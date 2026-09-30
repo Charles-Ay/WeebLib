@@ -7,7 +7,7 @@ using WeebLib.WeeLibExceptions;
 
 namespace WeebLib.Novel.NovelExceptions
 {
-    internal class SearchException : WeebLibException
+    public class SearchException : WeebLibException
     {
         public SearchException(string message) : base(message)
         {
